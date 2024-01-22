@@ -1,11 +1,14 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 	"scraper/discord"
 	"scraper/interest"
 	"scraper/scanner"
+
+	"github.com/aws/aws-lambda-go/lambda"
 )
 
 var (
@@ -31,9 +34,22 @@ func init() {
 	}
 }
 
-func main() {
+func lookForNewJobs() {
 	links := scanner.ScanNewJobs(scraperSiteABaseURL)
 	interestingJobs := interest.FilterInterest(scraperSiteABaseURL, proxyURL, links)
 	discord.SendJobsToDiscord(interestingJobs, scraperWebhook)
+}
 
+func handler(ctx context.Context) error {
+	lookForNewJobs()
+	return nil
+}
+
+func main() {
+	if os.Getenv("_LAMBDA_SERVER_PORT") == "" && os.Getenv("AWS_LAMBDA_RUNTIME_API") == "" {
+		// This will run locally
+		lookForNewJobs()
+	} else {
+		lambda.Start(handler)
+	}
 }
