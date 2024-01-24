@@ -20,9 +20,8 @@ func scanSiteA(siteABaseUrl string) []string {
 	var links []string
 	finished := false
 	page := 1
-	endTime := "yesterday"
 
-	for !finished {
+	for !finished || page > 15 {
 		pageStr := strconv.Itoa(page)
 		url := siteABaseUrl + "/jobs/remote/nationwide/dev-engineering?page=" + pageStr
 		// Make an HTTP GET request
@@ -70,8 +69,8 @@ func scanSiteA(siteABaseUrl string) []string {
 		doc.Find("div#search-results-bottom").Each(func(_ int, s *goquery.Selection) {
 			// Check the text of each element
 			s.Find("*").Each(func(_ int, e *goquery.Selection) {
-				// fmt.Println(e.Text())
-				if strings.Contains(strings.ToLower(e.Text()), endTime) {
+				lowerText := strings.ToLower(e.Text())
+				if strings.Contains(lowerText, "yesterday") || strings.Contains(lowerText, "days ago") {
 					finished = true
 				}
 			})
@@ -81,7 +80,8 @@ func scanSiteA(siteABaseUrl string) []string {
 		doc.Find("div#search-results-top").Each(func(_ int, s *goquery.Selection) {
 			// Check the text of each element
 			s.Find("*").Each(func(_ int, e *goquery.Selection) {
-				if strings.Contains(strings.ToLower(e.Text()), endTime) {
+				lowerText := strings.ToLower(e.Text())
+				if strings.Contains(lowerText, "yesterday") || strings.Contains(lowerText, "days ago") {
 					finished = true
 				}
 			})
