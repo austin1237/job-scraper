@@ -27,10 +27,20 @@ module "scraper_lambda" {
   run_time       = "provided.al2"
   timeout        = 300
   env_vars = {
-    "PROXY_URL" = "${var.PROXY_URL}"
+    "PROXY_URL" = "${module.proxy_gateway.api_url}"
     "SCRAPER_WEBHOOK" = "${var.SCRAPER_WEBHOOK}"
     "SCRAPER_SITEA_BASEURL" = "${var.SCRAPER_SITEA_BASEURL}"
   } 
+}
+
+module "proxy_lambda" {
+  source         = "./lambda"
+  zip_location   = "../proxy/bootstrap.zip"
+  name           = "proxy-${terraform.workspace}"
+  handler        = "bootstrap"
+  run_time       = "provided.al2"
+  timeout        = 300
+  env_vars = {} 
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -38,10 +48,22 @@ module "scraper_lambda" {
 # ---------------------------------------------------------------------------------------------------------------------
 module "scraper_lambda_trigger" {
   source               = "./cloudwatch-lambda-trigger"
-  # Every Weekday at 6pm MDT
+  # Every Weekday at 5pm MDT
   start_time           = "cron(0 0 * * ? *)"
   name                 = "scraper-lambda-trigger-${terraform.workspace}"
   lambda_function_name = "${module.scraper_lambda.name}"
   description          = "The timed trigger for ${module.scraper_lambda.name}"
   lambda_arn           = "${module.scraper_lambda.arn}"
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# API gateway
+# ---------------------------------------------------------------------------------------------------------------------
+
+module "proxy_gateway" {
+  source         = "./api-gateway"
+  lambda_name =  "${module.proxy_lambda.name}"
+  lambda_invoke_arn =   "${module.proxy_lambda.invoke_arn}"
+  api_name = "proxy-${terraform.workspace}"
+  route = "proxy"
 }

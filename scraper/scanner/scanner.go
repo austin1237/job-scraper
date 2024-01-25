@@ -1,6 +1,7 @@
 package scanner
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,12 +10,6 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 )
-
-type Post struct {
-	Title string
-	Link  string
-	Time  string
-}
 
 func scanSiteA(siteABaseUrl string) []string {
 	var links []string
@@ -91,6 +86,42 @@ func scanSiteA(siteABaseUrl string) []string {
 	}
 	links = deduplicatedLinks(links)
 	return links
+}
+
+func GetSiteAJobInfo(jobLink string, proxyUrl string) (Job, error) {
+	response, err := http.Get(proxyUrl + "/proxy?url=" + jobLink)
+	if err != nil {
+		return Job{}, err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		err := errors.New("source HTTP request failed with status: " + response.Status)
+		return Job{}, err
+	}
+
+	// Parse the HTML document using goquery
+	doc, err := goquery.NewDocumentFromReader(response.Body)
+	if err != nil {
+		return Job{}, err
+	}
+	jobDescription := doc.Find("div.job-description").Text()
+	// Find all <a> elements with href containing "/company"
+	companyLink := doc.Find("a[href*='/company']").First()
+	link, exists := companyLink.Attr("href")
+	companyName := ""
+	if exists {
+		parts := strings.Split(link, "/")
+		companyName = parts[len(parts)-1]
+
+	}
+	jobDescription = strings.ToLower(jobDescription)
+	newJob := Job{
+		Description: jobDescription,
+		Company:     companyName,
+		Link:        jobLink,
+	}
+	return newJob, nil
 }
 
 func deduplicatedLinks(links []string) []string {
