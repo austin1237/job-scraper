@@ -5,8 +5,7 @@ import (
 	"log"
 	"os"
 	"scraper/discord"
-	"scraper/interest"
-	"scraper/scanner"
+	"scraper/sitea"
 
 	"github.com/aws/aws-lambda-go/lambda"
 )
@@ -32,12 +31,12 @@ func init() {
 	if scraperSiteABaseURL == "" {
 		log.Fatal("Environment variable SCRAPER_SITEA_BASEURL must be set")
 	}
+
 }
 
 func lookForNewJobs() {
-	links := scanner.ScanNewJobs(scraperSiteABaseURL)
-	interestingJobs := interest.FilterInterest(scraperSiteABaseURL, proxyURL, links)
-	discord.SendJobsToDiscord(interestingJobs, scraperWebhook)
+	siteAjobs := sitea.ScanNewJobs(scraperSiteABaseURL, proxyURL)
+	discord.SendJobsToDiscord(siteAjobs, scraperWebhook)
 }
 
 func handler(ctx context.Context) error {

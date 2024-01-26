@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
-	"scraper/scanner"
+	job "scraper/job"
 )
 
-func SendJobsToDiscord(jobs []scanner.Job, webhookURL string) error {
+func SendJobsToDiscord(jobs []job.Job, webhookURL string) error {
 	var message bytes.Buffer
 	message.WriteString("```")
 	for _, job := range jobs {
