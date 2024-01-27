@@ -35,24 +35,24 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: 'us-east-1'
-          TF_VAR_PROXY_URL: ${{ secrets.PROXY_URL }}
           TF_VAR_SCRAPER_WEBHOOK: ${{ secrets.SCRAPER_WEBHOOK }}
           TF_VAR_SCRAPER_SITEA_BASEURL: ${{ secrets.SCRAPER_SITEA_BASEURL }}
+          TF_VAR_SCRAPER_SITEB_BASEURL: ${{ secrets.SCRAPER_SITEB_BASEURL }}
 
       - run: cd terraform && terraform plan
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: 'us-east-1'
-          TF_VAR_PROXY_URL: ${{ secrets.PROXY_URL }}
           TF_VAR_SCRAPER_WEBHOOK: ${{ secrets.SCRAPER_WEBHOOK }}
           TF_VAR_SCRAPER_SITEA_BASEURL: ${{ secrets.SCRAPER_SITEA_BASEURL }}
+          TF_VAR_SCRAPER_SITEB_BASEURL: ${{ secrets.SCRAPER_SITEB_BASEURL }}
         
       - run: cd terraform && terraform apply -input=false -auto-approve
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: 'us-east-1'
-          TF_VAR_PROXY_URL: ${{ secrets.PROXY_URL }}
           TF_VAR_SCRAPER_WEBHOOK: ${{ secrets.SCRAPER_WEBHOOK }}
           TF_VAR_SCRAPER_SITEA_BASEURL: ${{ secrets.SCRAPER_SITEA_BASEURL }}
+          TF_VAR_SCRAPER_SITEB_BASEURL: ${{ secrets.SCRAPER_SITEB_BASEURL }}

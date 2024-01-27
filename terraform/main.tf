@@ -30,6 +30,7 @@ module "scraper_lambda" {
     "PROXY_URL" = "${module.proxy_gateway.api_url}"
     "SCRAPER_WEBHOOK" = "${var.SCRAPER_WEBHOOK}"
     "SCRAPER_SITEA_BASEURL" = "${var.SCRAPER_SITEA_BASEURL}"
+     "SCRAPER_SITEB_BASEURL" = "${var.SCRAPER_SITEB_BASEURL}"
   } 
 }
 

@@ -6,6 +6,7 @@ import (
 	"os"
 	"scraper/discord"
 	"scraper/sitea"
+	"scraper/siteb"
 
 	"github.com/aws/aws-lambda-go/lambda"
 )
@@ -14,6 +15,7 @@ var (
 	proxyURL            string
 	scraperWebhook      string
 	scraperSiteABaseURL string
+	scraperSiteBBaseURL string
 )
 
 func init() {
@@ -32,11 +34,18 @@ func init() {
 		log.Fatal("Environment variable SCRAPER_SITEA_BASEURL must be set")
 	}
 
+	scraperSiteBBaseURL = os.Getenv("SCRAPER_SITEB_BASEURL")
+	if scraperSiteBBaseURL == "" {
+		log.Fatal("Environment variable SCRAPER_SITEB_BASEURL must be set")
+	}
+
 }
 
 func lookForNewJobs() {
 	siteAjobs := sitea.ScanNewJobs(scraperSiteABaseURL, proxyURL)
 	discord.SendJobsToDiscord(siteAjobs, scraperWebhook)
+	sitebJobs := siteb.ScanNewJobs(scraperSiteBBaseURL, proxyURL)
+	discord.SendJobsToDiscord(sitebJobs, scraperWebhook)
 }
 
 func handler(ctx context.Context) error {

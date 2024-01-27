@@ -11,3 +11,7 @@ variable "SCRAPER_SITEA_BASEURL" {
     sensitive = true
 }
 
+variable "SCRAPER_SITEB_BASEURL" {
+    sensitive = true
+}
+
