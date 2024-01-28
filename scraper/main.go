@@ -42,10 +42,23 @@ func init() {
 }
 
 func lookForNewJobs() {
-	siteAjobs := sitea.ScanNewJobs(scraperSiteABaseURL, proxyURL)
-	discord.SendJobsToDiscord(siteAjobs, scraperWebhook)
-	sitebJobs := siteb.ScanNewJobs(scraperSiteBBaseURL, proxyURL)
-	discord.SendJobsToDiscord(sitebJobs, scraperWebhook)
+	doneChannel := make(chan bool)
+
+	go func() {
+		siteAjobs := sitea.ScanNewJobs(scraperSiteABaseURL, proxyURL)
+		discord.SendJobsToDiscord(siteAjobs, scraperWebhook)
+		doneChannel <- true
+	}()
+
+	go func() {
+		siteBJobs := siteb.ScanNewJobs(scraperSiteBBaseURL, proxyURL)
+		discord.SendJobsToDiscord(siteBJobs, scraperWebhook)
+		doneChannel <- true
+	}()
+
+	// Wait for both goroutines to finish
+	<-doneChannel
+	<-doneChannel
 }
 
 func handler(ctx context.Context) error {

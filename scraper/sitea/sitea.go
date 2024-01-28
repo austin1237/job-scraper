@@ -82,7 +82,6 @@ func scanSiteA(siteABaseUrl string) []job.Job {
 			finished = true
 		}
 
-		fmt.Println("page: "+pageStr, len(possibleJobs))
 		page++
 	}
 
@@ -126,6 +125,8 @@ func deduplicatedLinks(jobs []job.Job) []job.Job {
 
 func ScanNewJobs(siteABaseUrl string, proxyUrl string) []job.Job {
 	possibleJobs := scanSiteA(siteABaseUrl)
+	fmt.Println("siteA total jobs found", len(possibleJobs))
 	interestingJobs := interest.FilterInterest(proxyUrl, possibleJobs, GetSiteAJobInfo)
+	fmt.Println("siteA total jobs found", len(possibleJobs))
 	return interestingJobs
 }

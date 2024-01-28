@@ -9,6 +9,9 @@ import (
 
 func SendJobsToDiscord(jobs []job.Job, webhookURL string) error {
 	var message bytes.Buffer
+	if len(jobs) == 0 {
+		return nil
+	}
 	message.WriteString("```")
 	for _, job := range jobs {
 		message.WriteString(job.Link)
