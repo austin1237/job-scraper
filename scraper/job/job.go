@@ -1,4 +1,4 @@
-package Job
+package job
 
 type Job struct {
 	Title   string

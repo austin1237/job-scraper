@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
-	job "scraper/job"
+	"scraper/job"
 )
 
 func SendJobsToDiscord(jobs []job.Job, webhookURL string) error {

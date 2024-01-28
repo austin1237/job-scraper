@@ -2,7 +2,7 @@ package interest
 
 import (
 	"fmt"
-	job "scraper/job"
+	"scraper/job"
 	"strings"
 	"sync"
 )

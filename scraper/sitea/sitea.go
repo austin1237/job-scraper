@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 	"scraper/interest"
-	job "scraper/job"
+	"scraper/job"
 	"strconv"
 	"strings"
 

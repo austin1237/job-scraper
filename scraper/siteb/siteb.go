@@ -8,7 +8,7 @@ import (
 	"scraper/interest"
 	"strings"
 
-	job "scraper/job"
+	"scraper/job"
 
 	"github.com/PuerkitoBio/goquery"
 )
