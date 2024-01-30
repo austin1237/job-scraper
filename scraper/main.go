@@ -5,17 +5,25 @@ import (
 	"log"
 	"os"
 	"scraper/discord"
+	"scraper/job"
 	"scraper/sitea"
 	"scraper/siteb"
+	"scraper/sitec"
 
 	"github.com/aws/aws-lambda-go/lambda"
 )
+
+type Site struct {
+	ScanNewJobs func(string, string) []job.Job
+	BaseURL     string
+}
 
 var (
 	proxyURL            string
 	scraperWebhook      string
 	scraperSiteABaseURL string
 	scraperSiteBBaseURL string
+	scraperSiteCBaseURL string
 )
 
 func init() {
@@ -39,26 +47,34 @@ func init() {
 		log.Fatal("Environment variable SCRAPER_SITEB_BASEURL must be set")
 	}
 
+	scraperSiteCBaseURL = os.Getenv("SCRAPER_SITEC_BASEURL")
+	if scraperSiteCBaseURL == "" {
+		log.Fatal("Environment variable SCRAPER_SITEB_BASEURL must be set")
+	}
+
 }
 
 func lookForNewJobs() {
-	doneChannel := make(chan bool)
+	var sites = []Site{
+		{ScanNewJobs: sitea.ScanNewJobs, BaseURL: scraperSiteABaseURL},
+		{ScanNewJobs: siteb.ScanNewJobs, BaseURL: scraperSiteBBaseURL},
+		{ScanNewJobs: sitec.ScanNewJobs, BaseURL: scraperSiteCBaseURL},
+		// Add more sites here
+	}
 
-	go func() {
-		siteAjobs := sitea.ScanNewJobs(scraperSiteABaseURL, proxyURL)
-		discord.SendJobsToDiscord(siteAjobs, scraperWebhook)
-		doneChannel <- true
-	}()
+	doneChannel := make(chan bool, len(sites))
+	for _, site := range sites {
+		go func(site Site) {
+			jobs := site.ScanNewJobs(site.BaseURL, proxyURL)
+			discord.SendJobsToDiscord(jobs, scraperWebhook)
+			doneChannel <- true
+		}(site)
+	}
 
-	go func() {
-		siteBJobs := siteb.ScanNewJobs(scraperSiteBBaseURL, proxyURL)
-		discord.SendJobsToDiscord(siteBJobs, scraperWebhook)
-		doneChannel <- true
-	}()
-
-	// Wait for both goroutines to finish
-	<-doneChannel
-	<-doneChannel
+	// Wait for all goroutines to finish
+	for range sites {
+		<-doneChannel
+	}
 }
 
 func handler(ctx context.Context) error {
