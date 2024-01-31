@@ -1,0 +1,43 @@
+name: Pull Request
+
+on:
+  pull_request:
+    branches: '*'
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21.6'
+
+    - name: Lint/Staticcheck scraper
+      uses: dominikh/staticcheck-action@v1.3.0
+      with:
+        version: "2023.1"
+        install-go: false
+        working-directory: scraper
+    
+    - name: Lint/Staticcheck proxy
+      uses: dominikh/staticcheck-action@v1.3.0
+      with:
+        version: "2023.1"
+        install-go: false
+        working-directory: proxy
+
+    - name: Build scraper
+      run: go build -v ./...
+      working-directory: scraper
+      
+    - name: Test scraper
+      run: go test -v ./...
+      working-directory: scraper
+   
+    - name: Build proxy
+      run: go build -v ./...
+      working-directory: proxy
+      
