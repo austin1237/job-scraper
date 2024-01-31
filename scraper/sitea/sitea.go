@@ -85,7 +85,7 @@ func scanSiteA(siteABaseUrl string) []job.Job {
 		page++
 	}
 
-	return deduplicatedLinks(possibleJobs)
+	return job.DeduplicatedLinks(possibleJobs)
 }
 
 func GetSiteAJobInfo(jobLink string, proxyUrl string) (string, error) {
@@ -108,19 +108,6 @@ func GetSiteAJobInfo(jobLink string, proxyUrl string) (string, error) {
 	jobDescription := doc.Find("div.job-description").Text()
 
 	return jobDescription, nil
-}
-
-func deduplicatedLinks(jobs []job.Job) []job.Job {
-	seen := make(map[string]bool)
-	deduplicated := []job.Job{}
-
-	for _, job := range jobs {
-		if !seen[job.Link] {
-			seen[job.Link] = true
-			deduplicated = append(deduplicated, job)
-		}
-	}
-	return deduplicated
 }
 
 func ScanNewJobs(siteABaseUrl string, proxyUrl string) []job.Job {

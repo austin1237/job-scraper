@@ -38,7 +38,6 @@ func scanSiteC(siteCBaseUrl string, suburl string) []job.Job {
 			companyName := s.Find("span.company").First().Text()
 			jobURL, exists := s.Find("a:has(span.title)").Attr("href")
 			if exists {
-				// fmt.Printf("Job Title: %s, Company Name: %s, Job URL: %s\n", jobTitle, companyName, jobURL)
 				newJob := job.Job{
 					Title:   jobTitle,
 					Company: companyName,
@@ -97,6 +96,8 @@ func ScanNewJobs(sitecBaseUrl string, proxyUrl string) []job.Job {
 	for i := 0; i < 2; i++ {
 		jobs = append(jobs, <-jobChannel...)
 	}
+
+	jobs = job.DeduplicatedLinks(jobs)
 	fmt.Println("siteC total jobs found", len(jobs))
 	interestingJobs := interest.FilterInterest(proxyUrl, jobs, getSiteCJobInfo)
 	fmt.Println("siteC interesting jobs", len(interestingJobs))
