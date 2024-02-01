@@ -41,7 +41,7 @@ func TestGenerateMessages_MultipleMessages(t *testing.T) {
 	// Create a job with a link and company name that together are 200 characters long
 	newJob := job.Job{
 		Link:    strings.Repeat("a", 100), // = 100
-		Company: strings.Repeat("b", 97),  // ", " and the ending "\n" is 3 characters, so 98 + 2 = 100
+		Company: strings.Repeat("b", 97),  // ", " and the ending "\n" is 3 characters, so 97 + 3 = 100
 	}
 
 	// Create 11 jobs, which should result in a total length of 2200 of job text characters

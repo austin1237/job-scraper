@@ -5,7 +5,7 @@ on:
     branches: '*'
 
 jobs:
-  build:
+  testAndLint:
     runs-on: ubuntu-22.04
 
     steps:
