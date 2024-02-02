@@ -15,7 +15,7 @@ func generateMessages(jobs []job.Job) []string {
 	for _, job := range jobs {
 		newLine := job.Link + ", " + job.Company + "\n"
 		// Discord has a 2000 character limit for messages
-		if message.Len()+len(newLine)+3 > 2000 { // +3 for the ending "```"
+		if message.Len()+len(newLine)+3 >= 2000 { // +3 for the ending "```"
 			message.WriteString("```")
 			messages = append(messages, message.String())
 			message.Reset()
@@ -39,8 +39,8 @@ func SendJobsToDiscord(jobs []job.Job, webhookURL string) []error {
 	messages := generateMessages(jobs)
 	errorChannel := make(chan error, len(messages))
 
-	go func() {
-		for _, message := range messages {
+	for _, message := range messages {
+		go func(message string) {
 			payload := map[string]string{
 				"content": message,
 			}
@@ -48,22 +48,24 @@ func SendJobsToDiscord(jobs []job.Job, webhookURL string) []error {
 			jsonPayload, err := json.Marshal(payload)
 			if err != nil {
 				errorChannel <- err
-				continue
+				return
 			}
 
 			resp, err := http.Post(webhookURL, "application/json", bytes.NewBuffer(jsonPayload))
 			if err != nil {
 				errorChannel <- err
-				continue
+				return
 			}
 			defer resp.Body.Close()
-		}
-		close(errorChannel)
-	}()
+			errorChannel <- nil
+		}(message)
+	}
 
 	var errors []error
-	for err := range errorChannel {
-		errors = append(errors, err)
+	for i := 0; i < len(messages); i++ {
+		if err := <-errorChannel; err != nil {
+			errors = append(errors, err)
+		}
 	}
 
 	return errors
