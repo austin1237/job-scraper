@@ -8,7 +8,7 @@ import (
 )
 
 func checkIfInterested(description string) bool {
-	keywords := []string{"node", "nodejs", "node.js", "go ", "golang", "go,", "go)", "(go"}
+	keywords := []string{"typescript", "node", "nodejs", "node.js", "go ", "golang", "go,", "go)", "(go"}
 	// Check if keywords are present in the job's text
 	descriptionToLower := strings.ToLower(description)
 	for _, keyword := range keywords {
