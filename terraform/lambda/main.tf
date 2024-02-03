@@ -44,20 +44,37 @@ resource "aws_iam_role_policy_attachment" "lambda_logs_attachment" {
   role       = aws_iam_role.lambda_role.name
 }
 
-resource "aws_lambda_function" "lambda" {
-  filename      = "${var.zip_location}"
-  function_name = "${var.name}"
-  role          = "${aws_iam_role.lambda_role.arn}"
-  handler       = "${var.handler}"
-  timeout       = "${var.timeout}"
-  memory_size   = "${var.memory_size}"
-  package_type  = "${var.package_type}"
-  image_uri     = "${var.image_uri}"
+resource "aws_lambda_function" "lambda_zip" {
+  count = var.package_type == "Zip" ? 1 : 0
 
-  source_code_hash = try(filesha256("${var.zip_location}"), "")
-  runtime          = "${var.run_time}"
+  function_name = var.name
+  role          = aws_iam_role.lambda_role.arn
+  handler       = var.handler
+  timeout       = var.timeout
+  memory_size   = var.memory_size
+  package_type  = var.package_type
+
+  filename         = var.zip_location
+  source_code_hash = filesha256(var.zip_location)
+  runtime          = var.run_time
 
   environment {
-    variables = "${var.env_vars}"
+    variables = var.env_vars
+  }
+}
+
+resource "aws_lambda_function" "lambda_image" {
+  count = var.package_type == "Image" ? 1 : 0
+
+  function_name = var.name
+  role          = aws_iam_role.lambda_role.arn
+  timeout       = var.timeout
+  memory_size   = var.memory_size
+  package_type  = var.package_type
+
+  image_uri = var.image_uri
+
+  environment {
+    variables = var.env_vars
   }
 }

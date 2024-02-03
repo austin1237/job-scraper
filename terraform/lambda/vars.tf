@@ -1,6 +1,6 @@
 variable "zip_location" {
   description = "path to the ziped lambda"
-  default = null
+  default = ""
 }
 
 variable "name" {
@@ -9,17 +9,17 @@ variable "name" {
 
 variable "handler" {
   description = "name of the lambdas handler"
-  default = null
+  default = ""
 }
 
 variable "run_time" {
   description = "run time of the lambda"
-  default = null
+  default = ""
 }
 
 variable "env_vars" {
   type        = map(string)
-  description = "run time of the lambda"
+  description = "environment variables for the lambda"
 }
 
 variable "memory_size" {
@@ -34,10 +34,10 @@ variable "timeout" {
 
 variable "package_type" {
   description = "The package type of the lambda only valid for docker based lambdas"
-  default = null
+  default = "Zip"
 }
 
 variable "image_uri" {
   description = "The docker image uri of the lambda"
-  default = null
+  default = ""
 }
