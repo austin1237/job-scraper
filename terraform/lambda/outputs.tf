@@ -1,11 +1,12 @@
 output "invoke_arn" {
-  value = "${aws_lambda_function.lambda.invoke_arn}"
+  value = var.package_type == "Zip" ? aws_lambda_function.lambda_zip[0].invoke_arn : aws_lambda_function.lambda_image[0].invoke_arn
 }
 
-output "name" {
-  value = "${aws_lambda_function.lambda.function_name}"
+output "qualified_arn" {
+  value = var.package_type == "Zip" ? aws_lambda_function.lambda_zip[0].qualified_arn : aws_lambda_function.lambda_image[0].qualified_arn
 }
 
-output "arn" {
-  value = "${aws_lambda_function.lambda.arn}"
+output "version" {
+  value = var.package_type == "Zip" ? aws_lambda_function.lambda_zip[0].version : aws_lambda_function.lambda_image[0].version
 }
+
