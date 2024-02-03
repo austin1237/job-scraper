@@ -45,7 +45,7 @@ resource "aws_iam_role_policy_attachment" "lambda_logs_attachment" {
 }
 
 resource "aws_lambda_function" "lambda" {
-  filename      = "${var.zip_location}"
+  filename      = try(filesha256("${var.zip_location}"), "")
   function_name = "${var.name}"
   role          = "${aws_iam_role.lambda_role.arn}"
   handler       = "${var.handler}"
