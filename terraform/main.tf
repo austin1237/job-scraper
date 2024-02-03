@@ -45,6 +45,16 @@ module "proxy_lambda" {
   env_vars = {} 
 }
 
+module "headless_lambda" {
+  source         = "./lambda"
+  name = "headless-${terraform.workspace}"
+  memory_size        = 2048
+  timeout = 30
+  image_uri        = "${var.AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/headless@${var.DOCKER_IMAGE_SHA}" # Replace with your Docker image URI
+  package_type     = "Image"
+  env_vars = {}
+}
+
 # ---------------------------------------------------------------------------------------------------------------------
 # Cloudwatch that will trigger the scraper lambda
 # ---------------------------------------------------------------------------------------------------------------------

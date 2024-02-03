@@ -51,8 +51,10 @@ resource "aws_lambda_function" "lambda" {
   handler       = "${var.handler}"
   timeout       = "${var.timeout}"
   memory_size   = "${var.memory_size}"
+  package_type  = "${var.package_type}"
+  image_uri     = "${var.image_uri}"
 
-  source_code_hash = "${filesha256("${var.zip_location}")}"
+  source_code_hash = try(filesha256("${var.zip_location}"), "")
   runtime          = "${var.run_time}"
 
   environment {

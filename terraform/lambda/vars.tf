@@ -1,5 +1,6 @@
 variable "zip_location" {
   description = "path to the ziped lambda"
+  default = ""
 }
 
 variable "name" {
@@ -8,10 +9,12 @@ variable "name" {
 
 variable "handler" {
   description = "name of the lambdas handler"
+  default = ""
 }
 
 variable "run_time" {
   description = "run time of the lambda"
+  default = ""
 }
 
 variable "env_vars" {
@@ -27,4 +30,14 @@ variable "memory_size" {
 variable "timeout" {
   description = "The max number of seconds the lambda can run"
   default     = 3
+}
+
+variable "package_type" {
+  description = "The package type of the lambda only valid for docker based lambdas"
+  default = ""
+}
+
+variable "image_uri" {
+  description = "The docker image uri of the lambda"
+  default = ""
 }

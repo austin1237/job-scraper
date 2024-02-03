@@ -19,3 +19,11 @@ variable "SCRAPER_SITEC_BASEURL" {
     sensitive = true
 }
 
+variable "AWS_ACCOUNT_ID" {
+    sensitive = true
+}
+
+variable "DOCKER_IMAGE_SHA" {
+    sensitive = true
+}
+
