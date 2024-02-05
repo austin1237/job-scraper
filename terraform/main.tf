@@ -74,8 +74,7 @@ module "scraper_lambda_trigger" {
 
 module "proxy_gateway" {
   source         = "./api-gateway"
-  lambda_name =  "${module.proxy_lambda.name}"
-  lambda_invoke_arn =   "${module.proxy_lambda.invoke_arn}"
   api_name = "proxy-${terraform.workspace}"
-  route = "proxy"
+  openapi = "../openapi.json"
+  lambda_arns = [ module.headless_lambda.arn, module.proxy_lambda.arn]
 }

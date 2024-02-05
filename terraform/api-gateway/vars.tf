@@ -1,15 +1,14 @@
-variable "lambda_name" {
-  description = "name of the lambda to attach to the gateway"
-}
-
-variable "lambda_invoke_arn" {
-  description = "invoke_arn of the lambda to attach to the gateway"
-}
-
 variable "api_name" {
     description = "arn of the lambda to attach to the gateway"
 }
 
-variable "route"{
-    description = "route of the api to attach to the lambda"
+variable "openapi" {
+    description = "The OpenAPI definition"
 }
+
+variable "lambda_arns" {
+  description = "Array of Lambda ARNs"
+  type        = list(string)
+  default     = []
+}
+

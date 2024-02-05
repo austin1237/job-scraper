@@ -1,74 +1,90 @@
-resource "aws_api_gateway_rest_api" "api_source" {
-  name = "${var.api_name}"
+resource "aws_iam_role" "api_gateway_role" {
+  name = "${var.api_name}-api-gateway-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "apigateway.amazonaws.com"
+        }
+      },
+    ]
+  })
 }
 
-resource "aws_api_gateway_resource" "api_path" {
-  rest_api_id = aws_api_gateway_rest_api.api_source.id
-  parent_id   = aws_api_gateway_rest_api.api_source.root_resource_id
-  path_part   = "${var.route}"
+resource "aws_iam_role_policy" "api_gateway_policy" {
+  name = "${var.api_name}-api-gateway-policy"
+  role = aws_iam_role.api_gateway_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "lambda:InvokeFunction"
+        ]
+        Effect   = "Allow"
+        Resource = var.lambda_arns
+      },
+    ]
+  })
 }
 
-resource "aws_api_gateway_method" "api_method" {
-  rest_api_id   = aws_api_gateway_rest_api.api_source.id
-  resource_id   = aws_api_gateway_resource.api_path.id
-  http_method   = "GET"
-  authorization = "NONE"
+data "aws_caller_identity" "current" {}
+
+
+# This will be needed to replace the account-id/iam-role in the OpenAPI definition
+data "local_file" "openapi" {
+  filename = var.openapi
 }
 
-resource "aws_api_gateway_integration" "api_integration" {
-  rest_api_id             = aws_api_gateway_rest_api.api_source.id
-  resource_id             = aws_api_gateway_resource.api_path.id
-  http_method             = aws_api_gateway_method.api_method.http_method
-  integration_http_method = "POST"
-  type                    = "AWS_PROXY"
-  uri                     = "${var.lambda_invoke_arn}"
+
+resource "aws_apigatewayv2_api" "api" {
+  name          = var.api_name
+  protocol_type = "HTTP"
+  # replaces the placeholders in the OpenAPI definition with the actual values
+  body = replace(
+  replace(
+    data.local_file.openapi.content, 
+    "{account-id}", 
+    data.aws_caller_identity.current.account_id
+  ),
+  "{iam-role}",
+  aws_iam_role.api_gateway_role.name
+  )
+
 }
 
-resource "aws_api_gateway_deployment" "api_deployment" {
-  depends_on = [aws_api_gateway_integration.api_integration]
-  rest_api_id = aws_api_gateway_rest_api.api_source.id
-  stage_name  = "prod"
-  triggers = {
+resource "aws_apigatewayv2_deployment" "api_deployment" {
+  api_id      = aws_apigatewayv2_api.api.id
+  description = "${var.api_name} deployment"
 
-    # NOTE: The configuration below will satisfy ordering considerations,
-    #       but not pick up all future REST API changes. More advanced patterns
-    #       are possible, such as using the filesha1() function against the
-    #       Terraform configuration file(s) or removing the .id references to
-    #       calculate a hash against whole resources. Be aware that using whole
-    #       resources will show a difference after the initial implementation.
-    #       It will stabilize to only change when resources change afterwards.
-    redeployment = sha1(jsonencode([
-      aws_api_gateway_resource.api_path.id,
-      aws_api_gateway_method.api_method.id,
-      aws_api_gateway_integration.api_integration.id,
-    ]))
+  lifecycle {
+    create_before_destroy = true
   }
 }
 
-resource "aws_api_gateway_method_settings" "general_settings" {
-  rest_api_id = "${aws_api_gateway_rest_api.api_source.id}"
-  stage_name  = "${aws_api_gateway_deployment.api_deployment.stage_name}"
-  method_path = "*/*"
+resource "aws_cloudwatch_log_group" "api_log_group" {
+  name = "${var.api_name}-logs"
+}
 
-  settings {
-    # Enable CloudWatch logging and metrics
-    metrics_enabled        = true
-    data_trace_enabled     = true
-    logging_level          = "INFO"
-
-    # Limit the rate of calls to prevent abuse and unwanted charges
-    throttling_rate_limit  = 100
+resource "aws_apigatewayv2_stage" "api_stage" {
+  api_id      = aws_apigatewayv2_api.api.id
+  name        = "prod"
+  description = "Production stage"
+  auto_deploy   = true
+  default_route_settings {
+    logging_level = "INFO"
     throttling_burst_limit = 50
+    throttling_rate_limit  = 100
+  }
+  
+    access_log_settings {
+    destination_arn = aws_cloudwatch_log_group.api_log_group.arn
+    format          = "$context.identity.sourceIp - - [$context.requestTime] \"$context.httpMethod $context.routeKey $context.protocol\" $context.status $context.responseLength $context.requestId $context.error.message $context.integration.error"
   }
 }
 
-resource "aws_lambda_permission" "lambda_permission" {
-  statement_id  = "AllowMyAPIInvoke"
-  action        = "lambda:InvokeFunction"
-  function_name = "${var.lambda_name}"
-  principal     = "apigateway.amazonaws.com"
-
-  # The /* part allows invocation from any stage, method and resource path
-  # within API Gateway.
-  source_arn = "${aws_api_gateway_rest_api.api_source.execution_arn}/*"
-}
