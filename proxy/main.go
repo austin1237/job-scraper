@@ -33,9 +33,8 @@ func getPageHtml(url string) (string, error) {
 	return string(body), nil
 }
 
-func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayProxyResponse, error) {
 	url := request.QueryStringParameters["url"]
-
 	body, err := getPageHtml(url)
 	if err != nil {
 		return events.APIGatewayProxyResponse{
