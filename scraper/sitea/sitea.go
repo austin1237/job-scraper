@@ -2,7 +2,6 @@ package sitea
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 	"scraper/interest"
@@ -112,8 +111,8 @@ func GetSiteAJobInfo(jobLink string, proxyUrl string) (string, error) {
 
 func ScanNewJobs(siteABaseUrl string, proxyUrl string) []job.Job {
 	possibleJobs := scanSiteA(siteABaseUrl)
-	fmt.Println("siteA total jobs found", len(possibleJobs))
+	log.Println("siteA total jobs found", len(possibleJobs))
 	interestingJobs := interest.FilterInterest(proxyUrl, possibleJobs, GetSiteAJobInfo)
-	fmt.Println("siteA interesting jobs found", len(interestingJobs))
+	log.Println("siteA interesting jobs found", len(interestingJobs))
 	return interestingJobs
 }

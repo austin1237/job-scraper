@@ -2,7 +2,6 @@ package siteb
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 	"scraper/interest"
@@ -94,8 +93,8 @@ func getSiteBJobInfo(jobUrl string, proxyUrl string) (string, error) {
 
 func ScanNewJobs(sitebBaseUrl string, proxyUrl string) []job.Job {
 	jobs := scanSiteB(sitebBaseUrl)
-	fmt.Println("siteB total jobs found", len(jobs))
+	log.Println("siteB total jobs found", len(jobs))
 	interestingJobs := interest.FilterInterest(proxyUrl, jobs, getSiteBJobInfo)
-	fmt.Println("siteB interesting jobs", len(interestingJobs))
+	log.Println("siteB interesting jobs", len(interestingJobs))
 	return interestingJobs
 }

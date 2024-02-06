@@ -9,6 +9,7 @@ import (
 	"scraper/sitea"
 	"scraper/siteb"
 	"scraper/sitec"
+	"scraper/sited"
 
 	"github.com/aws/aws-lambda-go/lambda"
 )
@@ -24,6 +25,7 @@ var (
 	scraperSiteABaseURL string
 	scraperSiteBBaseURL string
 	scraperSiteCBaseURL string
+	scraperSiteDBaseURL string
 )
 
 func init() {
@@ -49,7 +51,12 @@ func init() {
 
 	scraperSiteCBaseURL = os.Getenv("SCRAPER_SITEC_BASEURL")
 	if scraperSiteCBaseURL == "" {
-		log.Fatal("Environment variable SCRAPER_SITEB_BASEURL must be set")
+		log.Fatal("Environment variable SCRAPER_SITEC_BASEURL must be set")
+	}
+
+	scraperSiteDBaseURL = os.Getenv("SCRAPER_SITED_BASEURL")
+	if scraperSiteDBaseURL == "" {
+		log.Fatal("Environment variable SCRAPER_SITED_BASEURL must be set")
 	}
 
 }
@@ -59,6 +66,7 @@ func lookForNewJobs() {
 		{ScanNewJobs: sitea.ScanNewJobs, BaseURL: scraperSiteABaseURL},
 		{ScanNewJobs: siteb.ScanNewJobs, BaseURL: scraperSiteBBaseURL},
 		{ScanNewJobs: sitec.ScanNewJobs, BaseURL: scraperSiteCBaseURL},
+		{ScanNewJobs: sited.ScanNewJobs, BaseURL: scraperSiteDBaseURL},
 		// Add more sites here
 	}
 
