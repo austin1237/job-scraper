@@ -1,9 +1,7 @@
 package siteb
 
 import (
-	"errors"
 	"log"
-	"net/http"
 	"scraper/interest"
 	"strings"
 
@@ -12,26 +10,8 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-func scanSiteB(siteBBaseUrl string) []job.Job {
-	url := siteBBaseUrl + "/jobs"
-	response, err := http.Get(url)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusOK {
-		log.Fatalf("HTTP request failed with status: %s", response.Status)
-	}
-
-	// Parse the HTML document using goquery
-	doc, err := goquery.NewDocumentFromReader(response.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	var newJobs = []job.Job{}
-
+func siteBJobListParser(siteBBaseUrl string, doc *goquery.Document) []job.Job {
+	newJobs := []job.Job{}
 	// Find the div with class "row search-result"
 	doc.Find("div.row.search-result").Each(func(i int, s *goquery.Selection) {
 		// Extract the href attribute from the <a> element with rel="canonical"
@@ -57,22 +37,11 @@ func scanSiteB(siteBBaseUrl string) []job.Job {
 	})
 
 	return newJobs
+
 }
 
 func getSiteBJobInfo(jobUrl string, proxyUrl string) (string, error) {
-	response, err := http.Get(proxyUrl + "/proxy?url=" + jobUrl)
-	if err != nil {
-		return "", err
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusOK {
-		err := errors.New("source HTTP request failed with status: " + response.Status)
-		return "", err
-	}
-
-	// Parse the HTML document using goquery
-	doc, err := goquery.NewDocumentFromReader(response.Body)
+	doc, err := job.GetJobHtml(jobUrl, proxyUrl)
 	if err != nil {
 		return "", err
 	}
@@ -92,7 +61,7 @@ func getSiteBJobInfo(jobUrl string, proxyUrl string) (string, error) {
 }
 
 func ScanNewJobs(sitebBaseUrl string, proxyUrl string) []job.Job {
-	jobs := scanSiteB(sitebBaseUrl)
+	jobs := job.GetNewJobs(sitebBaseUrl+"/jobs", proxyUrl, siteBJobListParser)
 	log.Println("siteB total jobs found", len(jobs))
 	interestingJobs := interest.FilterInterest(proxyUrl, jobs, getSiteBJobInfo)
 	log.Println("siteB interesting jobs", len(interestingJobs))

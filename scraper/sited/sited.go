@@ -1,9 +1,7 @@
 package sited
 
 import (
-	"errors"
 	"log"
-	"net/http"
 	"scraper/interest"
 	"scraper/job"
 	"strings"
@@ -11,28 +9,8 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-func scanSiteD(siteDBaseUrl string) []job.Job {
-	var newJobs = []job.Job{}
-	url := siteDBaseUrl + "/remote-jobs/developer/"
-	response, err := http.Get(url)
-	if err != nil {
-		log.Println("SiteD: Failed to get site", err)
-		return newJobs
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusOK {
-		log.Printf("SiteD: HTTP request failed with status: %s", response.Status)
-		return newJobs
-	}
-
-	// Parse the HTML document using goquery
-	doc, err := goquery.NewDocumentFromReader(response.Body)
-	if err != nil {
-		log.Println("SiteD: Failed to parse site", err)
-		return newJobs
-	}
-
+func siteDJobListParser(siteDaseUrl string, doc *goquery.Document) []job.Job {
+	newJobs := []job.Job{}
 	doc.Find("a.card.m-0.border-left-0.border-right-0.border-top-0.border-bottom").Each(func(i int, s *goquery.Selection) {
 		jobURL, exists := s.Attr("href")
 		if exists {
@@ -43,7 +21,7 @@ func scanSiteD(siteDBaseUrl string) []job.Job {
 
 			newJob := job.Job{
 				Title:   jobTitle,
-				Link:    siteDBaseUrl + jobURL,
+				Link:    siteDaseUrl + jobURL,
 				Company: company,
 			}
 
@@ -52,33 +30,20 @@ func scanSiteD(siteDBaseUrl string) []job.Job {
 			}
 		}
 	})
-
 	return newJobs
 }
 
 func getSiteDJobInfo(jobUrl string, proxyUrl string) (string, error) {
-	response, err := http.Get(proxyUrl + "/proxy?url=" + jobUrl)
+	doc, err := job.GetJobHtml(jobUrl, proxyUrl)
 	if err != nil {
 		return "", err
 	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusOK {
-		return "", errors.New("HTTP request failed with status: " + response.Status)
-	}
-
-	// Parse the HTML document using goquery
-	doc, err := goquery.NewDocumentFromReader(response.Body)
-	if err != nil {
-		return "", err
-	}
-
 	jobInfo := doc.Find("div.job_description").Text()
 	return jobInfo, nil
 }
 
 func ScanNewJobs(siteDBaseUrl string, proxyUrl string) []job.Job {
-	jobs := scanSiteD(siteDBaseUrl)
+	jobs := job.GetNewJobs(siteDBaseUrl+"/remote-jobs/developer/", proxyUrl, siteDJobListParser)
 	log.Println("siteD total jobs found", len(jobs))
 	interestingJobs := interest.FilterInterest(proxyUrl, jobs, getSiteDJobInfo)
 	log.Println("siteD interesting jobs", len(interestingJobs))
