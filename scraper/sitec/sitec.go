@@ -1,9 +1,7 @@
 package sitec
 
 import (
-	"errors"
 	"log"
-	"net/http"
 
 	"scraper/interest"
 	"scraper/job"
@@ -11,24 +9,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-func scanSiteC(siteCBaseUrl string, suburl string) []job.Job {
-	url := siteCBaseUrl + suburl
-	response, err := http.Get(url)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusOK {
-		log.Fatalf("HTTP request failed with status: %s", response.Status)
-	}
-
-	// Parse the HTML document using goquery
-	doc, err := goquery.NewDocumentFromReader(response.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
-
+func siteCJobListParser(baseURL string, doc *goquery.Document) []job.Job {
 	var newJobs = []job.Job{}
 
 	doc.Find("section.jobs ul li").Each(func(i int, s *goquery.Selection) {
@@ -40,7 +21,7 @@ func scanSiteC(siteCBaseUrl string, suburl string) []job.Job {
 				newJob := job.Job{
 					Title:   jobTitle,
 					Company: companyName,
-					Link:    siteCBaseUrl + jobURL,
+					Link:    baseURL + jobURL,
 				}
 				newJobs = append(newJobs, newJob)
 			}
@@ -51,19 +32,7 @@ func scanSiteC(siteCBaseUrl string, suburl string) []job.Job {
 }
 
 func getSiteCJobInfo(jobUrl string, proxyUrl string) (string, error) {
-	response, err := http.Get(proxyUrl + "/proxy?url=" + jobUrl)
-	if err != nil {
-		return "", err
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusOK {
-		err := errors.New("source HTTP request failed with status: " + response.Status)
-		return "", err
-	}
-
-	// Parse the HTML document using goquery
-	doc, err := goquery.NewDocumentFromReader(response.Body)
+	doc, err := job.GetJobHtml(jobUrl, proxyUrl)
 	if err != nil {
 		return "", err
 	}
@@ -83,12 +52,12 @@ func ScanNewJobs(sitecBaseUrl string, proxyUrl string) []job.Job {
 	jobChannel := make(chan []job.Job, 2)
 
 	go func() {
-		fullStack := scanSiteC(sitecBaseUrl, "/categories/remote-full-stack-programming-jobs#job-listings")
+		fullStack := job.GetNewJobs(sitecBaseUrl+"/categories/remote-full-stack-programming-jobs#job-listings", proxyUrl, siteCJobListParser)
 		jobChannel <- fullStack
 	}()
 
 	go func() {
-		backEnd := scanSiteC(sitecBaseUrl, "/categories/remote-back-end-programming-jobs#job-listings")
+		backEnd := job.GetNewJobs(sitecBaseUrl+"/categories/remote-back-end-programming-jobs#job-listings", proxyUrl, siteCJobListParser)
 		jobChannel <- backEnd
 	}()
 
