@@ -7,7 +7,7 @@ import (
 	"sync"
 )
 
-func checkIfInterested(description string) bool {
+func CheckIfInterested(description string) bool {
 	keywords := []string{"typescript", "node", "nodejs", "node.js", "go ", "golang", "go,", "go)", "(go"}
 	// Check if keywords are present in the job's text
 	descriptionToLower := strings.ToLower(description)
@@ -39,7 +39,7 @@ func FilterInterest(proxyUrl string, Jobs []job.Job, jobInfoGetter JobInfoGetter
 			if err != nil {
 				fmt.Println(err)
 			}
-			if checkIfInterested(description) {
+			if CheckIfInterested(description) {
 				interestingJobs = append(interestingJobs, possibleJob)
 			}
 			goroutineCount--

@@ -6,6 +6,7 @@ import (
 	"os"
 	"scraper/discord"
 	"scraper/job"
+	"scraper/remotive"
 	"scraper/sitea"
 	"scraper/siteb"
 	"scraper/sitec"
@@ -67,6 +68,7 @@ func lookForNewJobs() {
 		{ScanNewJobs: siteb.ScanNewJobs, BaseURL: scraperSiteBBaseURL},
 		{ScanNewJobs: sitec.ScanNewJobs, BaseURL: scraperSiteCBaseURL},
 		{ScanNewJobs: sited.ScanNewJobs, BaseURL: scraperSiteDBaseURL},
+		{ScanNewJobs: remotive.ScanNewJobs, BaseURL: "https://remotive.com"},
 		// Add more sites here
 	}
 
