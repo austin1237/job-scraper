@@ -44,8 +44,8 @@ func getSiteDJobInfo(jobUrl string, proxyUrl string) (string, error) {
 
 func ScanNewJobs(siteDBaseUrl string, proxyUrl string) []job.Job {
 	jobs := job.GetNewJobs(siteDBaseUrl+"/remote-jobs/developer/", proxyUrl, siteDJobListParser)
-	log.Println("siteD total jobs found", len(jobs))
+	log.Println(siteDBaseUrl+" total jobs found", len(jobs))
 	interestingJobs := interest.FilterInterest(proxyUrl, jobs, getSiteDJobInfo)
-	log.Println("siteD interesting jobs", len(interestingJobs))
+	log.Println(siteDBaseUrl+" interesting jobs", len(interestingJobs))
 	return interestingJobs
 }
