@@ -33,6 +33,7 @@ module "scraper_lambda" {
     "SCRAPER_SITEB_BASEURL" = "${var.SCRAPER_SITEB_BASEURL}"
     "SCRAPER_SITEC_BASEURL" = "${var.SCRAPER_SITEC_BASEURL}"
     "SCRAPER_SITED_BASEURL" = "${var.SCRAPER_SITED_BASEURL}"
+    "SCRAPER_SITEE_BASEURL" = "${var.SCRAPER_SITEE_BASEURL}"
   } 
 }
 
@@ -51,7 +52,7 @@ module "headless_lambda" {
   name = "headless-${terraform.workspace}"
   memory_size        = 2048
   timeout = 30
-  image_uri        = "${var.AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/headless@${var.DOCKER_IMAGE_SHA}" # Replace with your Docker image URI
+  image_uri        = "${var.AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/headless@${var.DOCKER_IMAGE_SHA}"
   package_type     = "Image"
   env_vars = {}
 }
