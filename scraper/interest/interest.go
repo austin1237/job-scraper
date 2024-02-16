@@ -2,17 +2,20 @@ package interest
 
 import (
 	"fmt"
+	"regexp"
 	"scraper/job"
 	"strings"
 	"sync"
 )
 
 func CheckIfInterested(description string) bool {
-	keywords := []string{"typescript", "node", "nodejs", "node.js", "go ", "golang", "go,", "go)", "(go"}
+	keywords := []string{"typescript", "node", "nodejs", "node.js", "go", "golang"}
 	// Check if keywords are present in the job's text
 	descriptionToLower := strings.ToLower(description)
 	for _, keyword := range keywords {
-		if strings.Contains(descriptionToLower, keyword) {
+		pattern := "\\b" + keyword + "\\b"
+		match, _ := regexp.MatchString(pattern, descriptionToLower)
+		if match {
 			return true
 		}
 	}
