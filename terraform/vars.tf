@@ -27,6 +27,10 @@ variable "SCRAPER_SITEE_BASEURL" {
     sensitive = true
 }
 
+variable "SCRAPER_SITEF_BASEURL" {
+    sensitive = true
+}
+
 variable "AWS_ACCOUNT_ID" {
     sensitive = true
 }
