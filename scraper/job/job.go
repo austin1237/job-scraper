@@ -28,8 +28,14 @@ func DeduplicatedLinks(jobs []Job) []Job {
 	return deduplicated
 }
 
-func GetJobHtml(siteUrl string, proxyURL string) (*goquery.Document, error) {
-	response, err := http.Get(proxyURL + "/proxy?url=" + siteUrl)
+func GetJobHtml(siteUrl string, proxyURL string, optionalRoute ...string) (*goquery.Document, error) {
+	var route string
+	if len(optionalRoute) > 0 {
+		route = optionalRoute[0]
+	} else {
+		route = "proxy" // default mode
+	}
+	response, err := http.Get(proxyURL + "/" + route + "?url=" + siteUrl)
 	if err != nil {
 		log.Println(siteUrl+": Failed to get site", err)
 		return nil, err
@@ -55,14 +61,20 @@ func GetJobHtml(siteUrl string, proxyURL string) (*goquery.Document, error) {
 
 type parser func(string, *goquery.Document) []Job
 
-func GetNewJobs(siteUrl string, proxyURL string, jobParser parser) []Job {
+func GetNewJobs(siteUrl string, proxyURL string, jobParser parser, optionalMode ...string) []Job {
+	var mode string
+	if len(optionalMode) > 0 {
+		mode = optionalMode[0]
+	} else {
+		mode = "proxy" // default mode
+	}
 	u, err := url.Parse(siteUrl)
 	baseURL := u.Scheme + "://" + u.Host
 	if err != nil {
 		log.Println("Failed to parse url", err)
 		return []Job{}
 	}
-	doc, err := GetJobHtml(siteUrl, proxyURL)
+	doc, err := GetJobHtml(siteUrl, proxyURL, mode)
 	if err != nil {
 		return []Job{}
 	}

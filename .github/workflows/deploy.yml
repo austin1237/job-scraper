@@ -66,6 +66,7 @@ jobs:
           TF_VAR_SCRAPER_SITEC_BASEURL: ${{ secrets.SCRAPER_SITEC_BASEURL }}
           TF_VAR_SCRAPER_SITED_BASEURL: ${{ secrets.SCRAPER_SITED_BASEURL }}
           TF_VAR_SCRAPER_SITEE_BASEURL: ${{ secrets.SCRAPER_SITEE_BASEURL }}
+          TF_VAR_SCRAPER_SITEF_BASEURL: ${{ secrets.SCRAPER_SITEF_BASEURL }}
 
       - run: cd terraform && terraform plan
         env:
@@ -78,6 +79,7 @@ jobs:
           TF_VAR_SCRAPER_SITEC_BASEURL: ${{ secrets.SCRAPER_SITEC_BASEURL }}
           TF_VAR_SCRAPER_SITED_BASEURL: ${{ secrets.SCRAPER_SITED_BASEURL }}
           TF_VAR_SCRAPER_SITEE_BASEURL: ${{ secrets.SCRAPER_SITEE_BASEURL }}
+          TF_VAR_SCRAPER_SITEF_BASEURL: ${{ secrets.SCRAPER_SITEF_BASEURL }}
         
       - run: cd terraform && terraform apply -input=false -auto-approve
         env:
@@ -90,3 +92,4 @@ jobs:
           TF_VAR_SCRAPER_SITEC_BASEURL: ${{ secrets.SCRAPER_SITEC_BASEURL }}
           TF_VAR_SCRAPER_SITED_BASEURL: ${{ secrets.SCRAPER_SITED_BASEURL }}
           TF_VAR_SCRAPER_SITEE_BASEURL: ${{ secrets.SCRAPER_SITEE_BASEURL }}
+          TF_VAR_SCRAPER_SITEF_BASEURL: ${{ secrets.SCRAPER_SITEF_BASEURL }}
