@@ -65,7 +65,6 @@ func ScanNewJobs(sitecBaseUrl string, proxyUrl string) []job.Job {
 		jobs = append(jobs, <-jobChannel...)
 	}
 
-	jobs = job.DeduplicatedLinks(jobs)
 	log.Println(sitecBaseUrl+" total jobs found", len(jobs))
 	interestingJobs := interest.FilterInterest(proxyUrl, jobs, getSiteCJobInfo)
 	log.Println(sitecBaseUrl+" interesting jobs", len(interestingJobs))

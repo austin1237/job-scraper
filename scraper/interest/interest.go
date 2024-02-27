@@ -24,15 +24,16 @@ func CheckIfInterested(description string) bool {
 
 type JobInfoGetter func(string, string) (string, error)
 
-func FilterInterest(proxyUrl string, Jobs []job.Job, jobInfoGetter JobInfoGetter) []job.Job {
+func FilterInterest(proxyUrl string, possibleJobs []job.Job, jobInfoGetter JobInfoGetter) []job.Job {
 	interestingJobs := []job.Job{}
+	possibleJobs = job.DeduplicatedLinks(possibleJobs)
 	var wg sync.WaitGroup
 
 	// Number of concurrent goroutines
 	maxGoroutines := 10
 	var goroutineCount int
 
-	for _, possibleJob := range Jobs {
+	for _, possibleJob := range possibleJobs {
 		wg.Add(1)
 		goroutineCount++
 
