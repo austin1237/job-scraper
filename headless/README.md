@@ -1,4 +1,4 @@
-# lol-counter-source-api
+# headless
 A lambda that invokes a headless browser to render a page (including it's javascript) and passes along the rendered html.
 
 ## Why is this lambda using a container deployment rather than the standard zip deployment?
