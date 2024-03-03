@@ -2,6 +2,7 @@ package sited
 
 import (
 	"log"
+	"scraper/cache"
 	"scraper/interest"
 	"scraper/job"
 	"strings"
@@ -42,10 +43,15 @@ func getSiteDJobInfo(jobUrl string, proxyUrl string) (string, error) {
 	return jobInfo, nil
 }
 
-func ScanNewJobs(siteDBaseUrl string, proxyUrl string) []job.Job {
+func ScanNewJobs(siteDBaseUrl string, proxyUrl string, cache *cache.Cache) ([]job.Job, []job.Job) {
 	jobs := job.GetNewJobs(siteDBaseUrl+"/remote-jobs/developer/", proxyUrl, siteDJobListParser)
 	log.Println(siteDBaseUrl+" total jobs found", len(jobs))
-	interestingJobs := interest.FilterInterest(proxyUrl, jobs, getSiteDJobInfo)
+	unCachedJobs, err := cache.FilterCachedCompanies(jobs)
+	if err != nil {
+		log.Println("Error filtering cached companies", err)
+	}
+	log.Println(siteDBaseUrl+" total jobs not found in cache", len(unCachedJobs))
+	interestingJobs := interest.FilterInterest(proxyUrl, unCachedJobs, getSiteDJobInfo)
 	log.Println(siteDBaseUrl+" interesting jobs", len(interestingJobs))
-	return interestingJobs
+	return unCachedJobs, interestingJobs
 }

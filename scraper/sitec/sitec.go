@@ -3,6 +3,7 @@ package sitec
 import (
 	"log"
 
+	"scraper/cache"
 	"scraper/interest"
 	"scraper/job"
 
@@ -47,7 +48,7 @@ func getSiteCJobInfo(jobUrl string, proxyUrl string) (string, error) {
 	return description, nil
 }
 
-func ScanNewJobs(sitecBaseUrl string, proxyUrl string) []job.Job {
+func ScanNewJobs(sitecBaseUrl string, proxyUrl string, cache *cache.Cache) ([]job.Job, []job.Job) {
 	var jobs = []job.Job{}
 	jobChannel := make(chan []job.Job, 2)
 
@@ -66,7 +67,12 @@ func ScanNewJobs(sitecBaseUrl string, proxyUrl string) []job.Job {
 	}
 
 	log.Println(sitecBaseUrl+" total jobs found", len(jobs))
-	interestingJobs := interest.FilterInterest(proxyUrl, jobs, getSiteCJobInfo)
+	unCachedJobs, err := cache.FilterCachedCompanies(jobs)
+	if err != nil {
+		log.Println("Error filtering cached companies", err)
+	}
+	log.Println(sitecBaseUrl+" total jobs not found in cache", len(unCachedJobs))
+	interestingJobs := interest.FilterInterest(proxyUrl, unCachedJobs, getSiteCJobInfo)
 	log.Println(sitecBaseUrl+" interesting jobs", len(interestingJobs))
-	return interestingJobs
+	return unCachedJobs, interestingJobs
 }

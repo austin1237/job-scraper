@@ -2,6 +2,7 @@ package siteb
 
 import (
 	"log"
+	"scraper/cache"
 	"scraper/interest"
 	"strings"
 
@@ -60,10 +61,15 @@ func getSiteBJobInfo(jobUrl string, proxyUrl string) (string, error) {
 	return description, nil
 }
 
-func ScanNewJobs(sitebBaseUrl string, proxyUrl string) []job.Job {
+func ScanNewJobs(sitebBaseUrl string, proxyUrl string, cache *cache.Cache) ([]job.Job, []job.Job) {
 	jobs := job.GetNewJobs(sitebBaseUrl+"/jobs", proxyUrl, siteBJobListParser)
 	log.Println(sitebBaseUrl+" total jobs found", len(jobs))
-	interestingJobs := interest.FilterInterest(proxyUrl, jobs, getSiteBJobInfo)
+	unCachedJobs, err := cache.FilterCachedCompanies(jobs)
+	if err != nil {
+		log.Println("Error filtering cached companies", err)
+	}
+	log.Println(sitebBaseUrl+" total jobs not found in cache", len(unCachedJobs))
+	interestingJobs := interest.FilterInterest(proxyUrl, unCachedJobs, getSiteBJobInfo)
 	log.Println(sitebBaseUrl+" interesting jobs", len(interestingJobs))
-	return interestingJobs
+	return unCachedJobs, interestingJobs
 }

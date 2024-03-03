@@ -10,3 +10,6 @@ output "arn" {
   value = var.package_type == "Zip" ? aws_lambda_function.lambda_zip[0].arn : aws_lambda_function.lambda_image[0].arn
 }
 
+output "role_name" {
+  value = aws_iam_role.lambda_role.name
+}

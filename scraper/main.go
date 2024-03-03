@@ -4,7 +4,9 @@ import (
 	"context"
 	"log"
 	"os"
+	"scraper/cache"
 	"scraper/discord"
+	"scraper/dynamo"
 	"scraper/job"
 	"scraper/remotive"
 	"scraper/sitea"
@@ -18,7 +20,7 @@ import (
 )
 
 type Site struct {
-	ScanNewJobs func(string, string) []job.Job
+	ScanNewJobs func(string, string, *cache.Cache) ([]job.Job, []job.Job)
 	BaseURL     string
 }
 
@@ -31,6 +33,7 @@ var (
 	scraperSiteDBaseURL string
 	scraperSiteEBaseURL string
 	scraperSiteFBaseURL string
+	dynamoTable         string
 )
 
 func init() {
@@ -74,9 +77,20 @@ func init() {
 		log.Fatal("Environment variable SCRAPER_SITEF_BASEURL must be set")
 	}
 
+	dynamoTable = os.Getenv("DYNAMO_TABLE")
+	if scraperSiteFBaseURL == "" {
+		log.Fatal("Environment variable SCRAPER_SITEF_BASEURL must be set")
+	}
+
 }
 
 func lookForNewJobs() {
+	table, err := dynamo.NewTable(dynamoTable, "us-east-1") // replace with your table name
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	cache := cache.NewCache(table)
 	var sites = []Site{
 		{ScanNewJobs: sitea.ScanNewJobs, BaseURL: scraperSiteABaseURL},
 		{ScanNewJobs: siteb.ScanNewJobs, BaseURL: scraperSiteBBaseURL},
@@ -91,8 +105,13 @@ func lookForNewJobs() {
 	doneChannel := make(chan bool, len(sites))
 	for _, site := range sites {
 		go func(site Site) {
-			jobs := site.ScanNewJobs(site.BaseURL, proxyURL)
-			discord.SendJobsToDiscord(jobs, scraperWebhook)
+			uncachedJobs, interestingJobs := site.ScanNewJobs(site.BaseURL, proxyURL, cache)
+			errs := discord.SendJobsToDiscord(interestingJobs, scraperWebhook)
+			if len(errs) == 0 {
+				cache.WriteCompaniesToCache(uncachedJobs)
+			} else {
+				log.Println("Error sending to discord", errs)
+			}
 			doneChannel <- true
 		}(site)
 	}
