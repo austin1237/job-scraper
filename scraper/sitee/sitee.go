@@ -2,6 +2,7 @@ package sitee
 
 import (
 	"log"
+	"scraper/cache"
 	"scraper/interest"
 	"scraper/job"
 	"strings"
@@ -46,10 +47,15 @@ func getSiteEJobInfo(jobUrl string, proxyUrl string) (string, error) {
 	return jobInfo, nil
 }
 
-func ScanNewJobs(baseURL string, proxyURL string) []job.Job {
+func ScanNewJobs(baseURL string, proxyURL string, cache *cache.Cache) ([]job.Job, []job.Job) {
 	jobs := job.GetNewJobs(baseURL+"/category/development", proxyURL, siteEJobListParser)
 	log.Println(baseURL+" total jobs found", len(jobs))
-	interestingJobs := interest.FilterInterest(proxyURL, jobs, getSiteEJobInfo)
+	unCachedJobs, err := cache.FilterCachedCompanies(jobs)
+	if err != nil {
+		log.Println("Error filtering cached companies", err)
+	}
+	log.Println(baseURL+" total jobs not found in cache", len(unCachedJobs))
+	interestingJobs := interest.FilterInterest(proxyURL, unCachedJobs, getSiteEJobInfo)
 	log.Println(baseURL+" total interesting jobs found", len(interestingJobs))
-	return interestingJobs
+	return unCachedJobs, interestingJobs
 }

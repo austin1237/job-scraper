@@ -35,6 +35,7 @@ module "scraper_lambda" {
     "SCRAPER_SITED_BASEURL" = "${var.SCRAPER_SITED_BASEURL}"
     "SCRAPER_SITEE_BASEURL" = "${var.SCRAPER_SITEE_BASEURL}"
     "SCRAPER_SITEF_BASEURL" = "${var.SCRAPER_SITEF_BASEURL}"
+    "DYNAMO_TABLE" = "${aws_dynamodb_table.job_scraper_company_cache.name}"
   } 
 }
 
@@ -80,4 +81,33 @@ module "proxy_gateway" {
   api_name = "proxy-${terraform.workspace}"
   openapi = "../openapi.json"
   lambda_arns = [ module.headless_lambda.arn, module.proxy_lambda.arn]
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# DynamoDb
+# ---------------------------------------------------------------------------------------------------------------------
+resource "aws_dynamodb_table" "job_scraper_company_cache" {
+  name           = "job-scraper-company-cache-${terraform.workspace}"
+  billing_mode   = "PAY_PER_REQUEST"  # On-demand capacity mode
+  hash_key       = "company"
+
+  ttl {
+    attribute_name = "ExpirationTime"
+    enabled        = true
+  }
+
+  attribute {
+    name = "company"
+    type = "S"  # String data type for company attribute
+  }
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Lambda -> DynamoDb IAM
+# ---------------------------------------------------------------------------------------------------------------------
+module "dynamodb_lambda_iam" {
+  source = "./dynamodb-lambda-iam"
+  dynamodb_name = aws_dynamodb_table.job_scraper_company_cache.name
+  dynamodb_arn = aws_dynamodb_table.job_scraper_company_cache.arn
+  lambda_roles = [module.scraper_lambda.role_name]
 }

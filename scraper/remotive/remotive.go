@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"scraper/cache"
 	"scraper/interest"
 	"scraper/job"
 	"time"
@@ -71,12 +72,27 @@ func callApi(site string) []remotiveJob {
 	return newJobs
 }
 
-func ScanNewJobs(siteEBaseUrl string, proxyUrl string) []job.Job {
-	jobs := callApi(siteEBaseUrl + "/api/remote-jobs?category=software-dev&limit=100")
-	log.Println("Remotive total jobs found", len(jobs))
+func ScanNewJobs(baseURL string, proxyUrl string, cache *cache.Cache) ([]job.Job, []job.Job) {
+	remotiveJobs := callApi(baseURL + "/api/remote-jobs?category=software-dev&limit=100")
+	log.Println("Remotive total jobs found", len(remotiveJobs))
 	var interestingJobs []job.Job
+	var newJobs []job.Job
 
-	for _, newJob := range jobs {
+	for _, newJob := range remotiveJobs {
+		newJobs = append(newJobs, job.Job{
+			Title:   newJob.Title,
+			Link:    newJob.URL,
+			Company: newJob.CompanyName,
+		})
+	}
+
+	unCachedJobs, err := cache.FilterCachedCompanies(newJobs)
+	if err != nil {
+		log.Println("Error filtering cached companies", err)
+	}
+	log.Println(baseURL+" total jobs not found in cache", len(unCachedJobs))
+
+	for _, newJob := range remotiveJobs {
 		if interest.CheckIfInterested(newJob.Description) {
 			interestingJobs = append(interestingJobs, job.Job{
 				Title:   newJob.Title,
@@ -86,5 +102,5 @@ func ScanNewJobs(siteEBaseUrl string, proxyUrl string) []job.Job {
 		}
 	}
 	log.Println("Remotive interesting jobs", len(interestingJobs))
-	return interestingJobs
+	return unCachedJobs, interestingJobs
 }
