@@ -1,6 +1,6 @@
 # job-scraper
 A timed event that once a day scraps relevant jobs links and sends them to discord.
-![job-scraper (1)](https://github.com/austin1237/job-scraper/assets/1394341/39688936-66f2-4819-93bf-fcafb83930c4)
+![job-scraper](https://github.com/austin1237/job-scraper/assets/1394341/14af981a-ece3-403b-9dc2-a58a0b8fb73c)
 
 ## Deployment
 Deployment currently uses [Terraform](https://www.terraform.io/) to set up AWS services.
