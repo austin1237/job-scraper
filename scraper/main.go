@@ -78,8 +78,8 @@ func init() {
 	}
 
 	dynamoTable = os.Getenv("DYNAMO_TABLE")
-	if scraperSiteFBaseURL == "" {
-		log.Fatal("Environment variable SCRAPER_SITEF_BASEURL must be set")
+	if dynamoTable == "" {
+		log.Fatal("Environment variable DYNAMO_TABLE must be set")
 	}
 
 }
@@ -120,6 +120,7 @@ func lookForNewJobs() {
 	for range sites {
 		<-doneChannel
 	}
+
 }
 
 func handler(ctx context.Context) error {

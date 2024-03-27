@@ -7,6 +7,7 @@ import (
 	"scraper/job"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/PuerkitoBio/goquery"
 )
@@ -65,21 +66,39 @@ func GetSiteAJobInfo(jobLink string, proxyUrl string) (string, error) {
 }
 
 func ScanNewJobs(siteABaseUrl string, proxyUrl string, cache *cache.Cache) ([]job.Job, []job.Job) {
-	possibleJobs := []job.Job{}
-	finished := false
-	page := 1
+	var wg sync.WaitGroup
+	jobsChan := make(chan []job.Job)
 
-	for !finished || page > 15 {
-		currentJobCount := len(possibleJobs)
-		pageStr := strconv.Itoa(page)
-		url := siteABaseUrl + "/jobs/remote/nationwide/dev-engineering?page=" + pageStr
-		jobs := job.GetNewJobs(url, proxyUrl, siteAJobListParser)
-		possibleJobs = append(possibleJobs, jobs...)
-		// No new jobs found were done
-		if currentJobCount == len(possibleJobs) {
-			finished = true
+	fetchJobs := func(url string) {
+		defer wg.Done()
+		finished := false
+		page := 1
+		for !finished && page <= 15 {
+			pageStr := strconv.Itoa(page)
+			url := url + "?page=" + pageStr
+			jobs := job.GetNewJobs(url, proxyUrl, siteAJobListParser)
+			jobsChan <- jobs
+			// No new jobs found were done
+			if len(jobs) == 0 {
+				finished = true
+			}
+			page++
 		}
-		page++
+	}
+
+	wg.Add(2)
+	go fetchJobs(siteABaseUrl + "/jobs/remote/nationwide/dev-engineering")
+	// lat and lon is obfuscated / local hospital
+	go fetchJobs(siteABaseUrl + "/jobs/hybrid/office/dev-engineering?search=Software+Engineer&location=Englewood-CO-USA&longitude=-104.99350&latitude=39.65464&searcharea=25mi")
+
+	go func() {
+		wg.Wait()
+		close(jobsChan)
+	}()
+
+	possibleJobs := []job.Job{}
+	for jobs := range jobsChan {
+		possibleJobs = append(possibleJobs, jobs...)
 	}
 
 	log.Println(siteABaseUrl+" total jobs found", len(possibleJobs))
