@@ -15,6 +15,7 @@ import (
 	"scraper/sited"
 	"scraper/sitee"
 	"scraper/sitef"
+	"time"
 
 	"github.com/aws/aws-lambda-go/lambda"
 )
@@ -22,6 +23,11 @@ import (
 type Site struct {
 	ScanNewJobs func(string, string, *cache.Cache) ([]job.Job, []job.Job)
 	BaseURL     string
+}
+
+type Result struct {
+	Elapsed time.Duration
+	URL     string
 }
 
 var (
@@ -102,9 +108,11 @@ func lookForNewJobs() {
 		// Add more sites here
 	}
 
-	doneChannel := make(chan bool, len(sites))
+	results := make([]Result, 0, len(sites))
+	doneChannel := make(chan Result, len(sites))
 	for _, site := range sites {
 		go func(site Site) {
+			start := time.Now()
 			uncachedJobs, interestingJobs := site.ScanNewJobs(site.BaseURL, proxyURL, cache)
 			errs := discord.SendJobsToDiscord(interestingJobs, scraperWebhook)
 			if len(errs) == 0 {
@@ -112,13 +120,19 @@ func lookForNewJobs() {
 			} else {
 				log.Println("Error sending to discord", errs)
 			}
-			doneChannel <- true
+			elapsed := time.Since(start)
+			doneChannel <- Result{Elapsed: elapsed, URL: site.BaseURL}
 		}(site)
 	}
 
 	// Wait for all goroutines to finish
 	for range sites {
-		<-doneChannel
+		result := <-doneChannel
+		results = append(results, result)
+	}
+
+	for _, result := range results {
+		log.Printf("Execution took %s for %s \n", result.Elapsed, result.URL)
 	}
 
 }
