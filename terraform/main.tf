@@ -65,7 +65,7 @@ module "headless_lambda" {
 module "scraper_lambda_trigger" {
   source               = "./cloudwatch-lambda-trigger"
   # Every Weekday at 5pm MDT
-  start_time           = "cron(0 0 * * ? *)"
+  start_time           = "cron(0 23 * * ? *)"
   name                 = "scraper-lambda-trigger-${terraform.workspace}"
   lambda_function_name = "${module.scraper_lambda.name}"
   description          = "The timed trigger for ${module.scraper_lambda.name}"
