@@ -166,3 +166,8 @@ dist
 #lambdas zip file
 *.zip
 
+#local ts build
+/local/build
+# output files for the local scraper
+/local/*-jobs.txt
+
