@@ -40,4 +40,20 @@ jobs:
     - name: Build proxy
       run: go build -v ./...
       working-directory: proxy
-      
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: v20.12.2
+    
+    - name: Install local dependencies
+      run: npm install
+      working-directory: local
+    
+    - name: build local typescript
+      run: npx tsc
+      working-directory: local
+    
+    - name: test local
+      run: npm test
+      working-directory: local
