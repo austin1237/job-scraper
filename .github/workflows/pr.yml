@@ -41,6 +41,14 @@ jobs:
       run: go build -v ./...
       working-directory: proxy
     
+    - name: Build jobNotifier
+      run: go build -v ./...
+      working-directory: jobNotifier
+    
+    - name: Test jobNotifier
+      run: go test -v ./...
+      working-directory: jobNotifier
+
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
