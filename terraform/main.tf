@@ -59,6 +59,19 @@ module "headless_lambda" {
   env_vars = {}
 }
 
+module "job_notifier_lambda" {
+  source         = "./lambda"
+  zip_location   = "../jobNotifier/bootstrap.zip"
+  name           = "jobNotifier-${terraform.workspace}"
+  handler        = "bootstrap"
+  run_time       = "provided.al2"
+  timeout        = 300
+  env_vars = {
+    "DYNAMO_TABLE" = "${aws_dynamodb_table.job_scraper_company_cache.name}"
+    "SCRAPER_WEBHOOK" = "${var.SCRAPER_WEBHOOK}"
+  } 
+}
+
 # ---------------------------------------------------------------------------------------------------------------------
 # Cloudwatch that will trigger the scraper lambda
 # ---------------------------------------------------------------------------------------------------------------------
@@ -79,8 +92,15 @@ module "scraper_lambda_trigger" {
 module "proxy_gateway" {
   source         = "./api-gateway"
   api_name = "proxy-${terraform.workspace}"
-  openapi = "../openapi.json"
+  openapi = "../proxy-openapi.json"
   lambda_arns = [ module.headless_lambda.arn, module.proxy_lambda.arn]
+}
+
+module "job_gateway" {
+  source         = "./api-gateway"
+  api_name = "job-${terraform.workspace}"
+  openapi = "../job-openapi.json"
+  lambda_arns = [ module.job_notifier_lambda.arn]
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -109,5 +129,5 @@ module "dynamodb_lambda_iam" {
   source = "./dynamodb-lambda-iam"
   dynamodb_name = aws_dynamodb_table.job_scraper_company_cache.name
   dynamodb_arn = aws_dynamodb_table.job_scraper_company_cache.arn
-  lambda_roles = [module.scraper_lambda.role_name]
+  lambda_roles = [module.scraper_lambda.role_name, module.job_notifier_lambda.role_name]
 }
