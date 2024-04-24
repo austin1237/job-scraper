@@ -10,7 +10,7 @@ import (
 
 func TestGenerateMessages(t *testing.T) {
 	jobs := []job.Job{
-		{Link: "http://example.com/job1", Company: "Company1"},
+		{Link: "http://example.com/job1", Company: "Company1", Keyword: "Go"},
 		{Link: "http://example.com/job2", Company: "Company2"},
 		{Link: "http://example.com/job3", Company: "Company3"},
 		// Add more jobs to test the 2000 character limit
@@ -26,6 +26,9 @@ func TestGenerateMessages(t *testing.T) {
 	// Check that all jobs are included in the messages
 	for _, job := range jobs {
 		jobLine := job.Link + ", " + job.Company
+		if job.Keyword != "" {
+			jobLine += ", " + job.Keyword
+		}
 		found := false
 		for _, message := range messages {
 			if strings.Contains(message, jobLine) {

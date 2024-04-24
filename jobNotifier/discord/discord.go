@@ -13,7 +13,12 @@ func generateMessages(jobs []job.Job) []string {
 	message.WriteString("```")
 
 	for _, job := range jobs {
-		newLine := job.Link + ", " + job.Company + "\n"
+		newLine := job.Link + ", " + job.Company
+		if job.Keyword != "" {
+			newLine += ", " + job.Keyword
+		}
+
+		newLine += "\n"
 		// Discord has a 2000 character limit for messages
 		if message.Len()+len(newLine)+3 >= 2000 { // +3 for the ending "```"
 			message.WriteString("```")
