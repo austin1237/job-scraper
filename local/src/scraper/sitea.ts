@@ -1,6 +1,6 @@
 import { Browser, Page } from 'puppeteer';
 import { evaluateJobInterest } from '../interest';
-import { writeToFile } from '../fileHandler';
+import { JobService, Job } from '../jobService';
 const urls: string[] = [];
 
 const didUrlChange = async (page: Page): Promise<boolean> => {
@@ -18,7 +18,8 @@ const didUrlChange = async (page: Page): Promise<boolean> => {
 };
 
 
-export const scrap = async(browser : Browser, link : string, jobCount : number) => {
+export const scrap = async(browser : Browser, link : string, jobCount : number, jobService: JobService) => {
+    let interestingJobs: Job[] = [];
     try{    
         const page = await browser.newPage();
         await page.goto(link);
@@ -54,15 +55,21 @@ export const scrap = async(browser : Browser, link : string, jobCount : number) 
                         const pageUrl = urls[urls.length - 1]; // Get the current page URL
                         const jobCategory = evaluateJobInterest(jobTitle, companyName, jobDescriptionText);
 
-                        if(jobCategory){
-                            writeToFile(pageUrl, jobTitle, companyName, jobCategory);
-                            jobCount++;
-                            console.log(`Job found ${jobCount}`);
+                        if(jobCategory && jobTitle && companyName && pageUrl){
+                            interestingJobs.push({ title: jobTitle, company: companyName, keyword: jobCategory, link: pageUrl });
                         }
                         
                         await new Promise(resolve => setTimeout(resolve, 5000)); // Sleep for 5 seconds to avoid bot detection
                     }
                 }
+            }
+
+            // Send the jobs to the API
+            if (interestingJobs.length) {
+                const response = await jobService.sendJobs(interestingJobs);
+                jobCount += response.uncached;
+                console.log(`Total jobs: ${jobCount}`);
+                interestingJobs = []
             }
         
             // Click on the "Next" button and wait for the next page to load
