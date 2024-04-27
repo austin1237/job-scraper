@@ -1,6 +1,8 @@
 package job
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"log"
 	"net/http"
@@ -13,6 +15,12 @@ type Job struct {
 	Title   string
 	Company string
 	Link    string
+}
+
+type Response struct {
+	Total      int `json:"total"`
+	Uncached   int `json:"uncached"`
+	Duplicates int `json:"duplicates"`
 }
 
 func DeduplicatedLinks(jobs []Job) []Job {
@@ -79,4 +87,25 @@ func GetNewJobs(siteUrl string, proxyURL string, jobParser parser, optionalMode 
 		return []Job{}
 	}
 	return jobParser(baseURL, doc)
+}
+
+func SendJobs(jobURL string, jobs []Job) (Response, error) {
+	var response Response
+	jsonData, err := json.Marshal(map[string][]Job{"jobs": jobs})
+	if err != nil {
+		return response, err
+	}
+
+	resp, err := http.Post(jobURL+"/job", "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return response, err
+	}
+	defer resp.Body.Close()
+
+	err = json.NewDecoder(resp.Body).Decode(&response)
+	if err != nil {
+		return response, err
+	}
+
+	return response, nil
 }

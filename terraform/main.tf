@@ -28,14 +28,13 @@ module "scraper_lambda" {
   timeout        = 300
   env_vars = {
     "PROXY_URL" = "${module.proxy_gateway.api_url}"
-    "SCRAPER_WEBHOOK" = "${var.SCRAPER_WEBHOOK}"
     "SCRAPER_SITEA_BASEURL" = "${var.SCRAPER_SITEA_BASEURL}"
     "SCRAPER_SITEB_BASEURL" = "${var.SCRAPER_SITEB_BASEURL}"
     "SCRAPER_SITEC_BASEURL" = "${var.SCRAPER_SITEC_BASEURL}"
     "SCRAPER_SITED_BASEURL" = "${var.SCRAPER_SITED_BASEURL}"
     "SCRAPER_SITEE_BASEURL" = "${var.SCRAPER_SITEE_BASEURL}"
     "SCRAPER_SITEF_BASEURL" = "${var.SCRAPER_SITEF_BASEURL}"
-    "DYNAMO_TABLE" = "${aws_dynamodb_table.job_scraper_company_cache.name}"
+    "JOB_URL" = "${module.job_gateway.api_url}"
   } 
 }
 

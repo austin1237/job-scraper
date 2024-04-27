@@ -1,8 +1,6 @@
 package sitea
 
 import (
-	"log"
-	"scraper/cache"
 	"scraper/interest"
 	"scraper/job"
 	"strconv"
@@ -65,7 +63,7 @@ func GetSiteAJobInfo(jobLink string, proxyUrl string) (string, error) {
 	return jobDescription, nil
 }
 
-func ScanNewJobs(siteABaseUrl string, proxyUrl string, cache *cache.Cache) ([]job.Job, []job.Job) {
+func ScanNewJobs(siteABaseUrl string, proxyUrl string) []job.Job {
 	var wg sync.WaitGroup
 	jobsChan := make(chan []job.Job)
 
@@ -101,13 +99,6 @@ func ScanNewJobs(siteABaseUrl string, proxyUrl string, cache *cache.Cache) ([]jo
 		possibleJobs = append(possibleJobs, jobs...)
 	}
 
-	log.Println(siteABaseUrl+" total jobs found", len(possibleJobs))
-	unCachedJobs, err := cache.FilterCachedCompanies(possibleJobs)
-	if err != nil {
-		log.Println("Error filtering cached companies", err)
-	}
-	log.Println(siteABaseUrl+" total jobs not found in cache", len(unCachedJobs))
-	interestingJobs := interest.FilterInterest(proxyUrl, unCachedJobs, GetSiteAJobInfo)
-	log.Println(siteABaseUrl+" interesting jobs found", len(interestingJobs))
-	return unCachedJobs, interestingJobs
+	interestingJobs := interest.FilterInterest(proxyUrl, possibleJobs, GetSiteAJobInfo)
+	return interestingJobs
 }
