@@ -4,9 +4,6 @@ import (
 	"context"
 	"log"
 	"os"
-	"scraper/cache"
-	"scraper/discord"
-	"scraper/dynamo"
 	"scraper/job"
 	"scraper/remotive"
 	"scraper/sitea"
@@ -21,7 +18,7 @@ import (
 )
 
 type Site struct {
-	ScanNewJobs func(string, string, *cache.Cache) ([]job.Job, []job.Job)
+	ScanNewJobs func(string, string) []job.Job
 	BaseURL     string
 }
 
@@ -32,25 +29,19 @@ type Result struct {
 
 var (
 	proxyURL            string
-	scraperWebhook      string
 	scraperSiteABaseURL string
 	scraperSiteBBaseURL string
 	scraperSiteCBaseURL string
 	scraperSiteDBaseURL string
 	scraperSiteEBaseURL string
 	scraperSiteFBaseURL string
-	dynamoTable         string
+	jobURL              string
 )
 
 func init() {
 	proxyURL = os.Getenv("PROXY_URL")
 	if proxyURL == "" {
 		log.Fatal("Environment variable PROXY_URL must be set")
-	}
-
-	scraperWebhook = os.Getenv("SCRAPER_WEBHOOK")
-	if scraperWebhook == "" {
-		log.Fatal("Environment variable SCRAPER_WEBHOOK must be set")
 	}
 
 	scraperSiteABaseURL = os.Getenv("SCRAPER_SITEA_BASEURL")
@@ -83,20 +74,14 @@ func init() {
 		log.Fatal("Environment variable SCRAPER_SITEF_BASEURL must be set")
 	}
 
-	dynamoTable = os.Getenv("DYNAMO_TABLE")
-	if dynamoTable == "" {
-		log.Fatal("Environment variable DYNAMO_TABLE must be set")
+	jobURL = os.Getenv("JOB_URL")
+	if jobURL == "" {
+		log.Fatal("Environment variable JOB_URL must be set")
 	}
 
 }
 
 func lookForNewJobs() {
-	table, err := dynamo.NewTable(dynamoTable, "us-east-1") // replace with your table name
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	cache := cache.NewCache(table)
 	var sites = []Site{
 		{ScanNewJobs: sitea.ScanNewJobs, BaseURL: scraperSiteABaseURL},
 		{ScanNewJobs: siteb.ScanNewJobs, BaseURL: scraperSiteBBaseURL},
@@ -113,14 +98,15 @@ func lookForNewJobs() {
 	for _, site := range sites {
 		go func(site Site) {
 			start := time.Now()
-			uncachedJobs, interestingJobs := site.ScanNewJobs(site.BaseURL, proxyURL, cache)
-			errs := discord.SendJobsToDiscord(interestingJobs, scraperWebhook)
-			if len(errs) == 0 {
-				cache.WriteCompaniesToCache(uncachedJobs)
-			} else {
-				log.Println("Error sending to discord", errs)
-			}
+			interestingJobs := site.ScanNewJobs(site.BaseURL, proxyURL)
+			results, err := job.SendJobs(jobURL, interestingJobs)
 			elapsed := time.Since(start)
+			if err != nil {
+				log.Println("Error sending to job api", err)
+				doneChannel <- Result{Elapsed: elapsed, URL: site.BaseURL}
+				return
+			}
+			log.Println(site.BaseURL+", Total Jobs: ", results.Total, "Uncached Jobs: ", results.Uncached, "Duplicates: ", results.Duplicates)
 			doneChannel <- Result{Elapsed: elapsed, URL: site.BaseURL}
 		}(site)
 	}
