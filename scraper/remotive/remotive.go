@@ -76,11 +76,13 @@ func ScanNewJobs(baseURL string, proxyUrl string) []job.Job {
 	log.Println("Remotive total jobs found", len(remotiveJobs))
 	var interestingJobs []job.Job
 	for _, newJob := range remotiveJobs {
-		if interest.CheckIfInterested(newJob.Description) {
+		keyword := interest.CheckIfInterested(newJob.Description)
+		if keyword != "" {
 			interestingJobs = append(interestingJobs, job.Job{
 				Title:   newJob.Title,
 				Link:    newJob.URL,
 				Company: newJob.CompanyName,
+				Keyword: keyword,
 			})
 		}
 	}

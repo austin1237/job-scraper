@@ -8,18 +8,18 @@ import (
 	"sync"
 )
 
-func CheckIfInterested(description string) bool {
-	keywords := []string{"typescript", "node", "nodejs", "node.js", "go", "golang"}
+func CheckIfInterested(description string) string {
+	keywords := []string{"go", "golang", "node", "nodejs", "node.js", "typescript"}
 	// Check if keywords are present in the job's text
 	descriptionToLower := strings.ToLower(description)
 	for _, keyword := range keywords {
 		pattern := "\\b" + keyword + "\\b"
 		match, _ := regexp.MatchString(pattern, descriptionToLower)
 		if match {
-			return true
+			return keyword
 		}
 	}
-	return false
+	return ""
 }
 
 type JobInfoGetter func(string, string) (string, error)
@@ -43,7 +43,9 @@ func FilterInterest(proxyUrl string, possibleJobs []job.Job, jobInfoGetter JobIn
 			if err != nil {
 				fmt.Println(err)
 			}
-			if CheckIfInterested(description) {
+
+			possibleJob.Keyword = CheckIfInterested(description)
+			if possibleJob.Keyword != "" {
 				interestingJobs = append(interestingJobs, possibleJob)
 			}
 			goroutineCount--
