@@ -10,37 +10,37 @@ func TestCheckIfInterested(t *testing.T) {
 	tests := []struct {
 		name        string
 		description string
-		want        bool
+		want        string
 	}{
 		{
 			name:        "contains typescript",
 			description: "This is a job for a TypeScript developer",
-			want:        true,
+			want:        "typescript",
 		},
 		{
 			name:        "contains node",
 			description: "This is a job for a Node.js developer",
-			want:        true,
+			want:        "node",
 		},
 		{
 			name:        "contains go",
 			description: "This is a job for a Go developer",
-			want:        true,
+			want:        "go",
 		},
 		{
 			name:        "contains go",
 			description: "This is a job for go.",
-			want:        true,
+			want:        "go",
 		},
 		{
 			name:        "contains django",
 			description: "This is a job for a django developer in Chicago",
-			want:        false,
+			want:        "",
 		},
 		{
 			name:        "does not contain keyword",
 			description: "This is a job for a Python developer",
-			want:        false,
+			want:        "",
 		},
 	}
 
