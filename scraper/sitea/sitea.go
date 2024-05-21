@@ -1,6 +1,7 @@
 package sitea
 
 import (
+	"log"
 	"scraper/interest"
 	"scraper/job"
 	"strconv"
@@ -16,8 +17,8 @@ func siteAJobListParser(baseURL string, doc *goquery.Document) []job.Job {
 		recent := false
 		titleCheck := false
 		companyLink, _ := s.Find("a[href^='/company/']").Attr("href")
-		jobLink, _ := s.Find("a[id='job-card-alias']").Attr("href")
-		jobTitle := s.Find("a[id='job-card-alias']").Text()
+		jobLink, _ := s.Find("a[class='card-alias-after-overlay hover-underline link-visited-color text-break']").Attr("href")
+		jobTitle := s.Find("a[class='card-alias-after-overlay hover-underline link-visited-color text-break']").Text()
 		timePosted := s.Find("span.font-barlow.text-gray-03").Text()
 
 		// Split the companyLink on '/' and get the last part
@@ -98,6 +99,7 @@ func ScanNewJobs(siteABaseUrl string, proxyUrl string) []job.Job {
 	for jobs := range jobsChan {
 		possibleJobs = append(possibleJobs, jobs...)
 	}
+	log.Println(siteABaseUrl+", Total jobs found before interest check: ", len(possibleJobs))
 
 	interestingJobs := interest.FilterInterest(proxyUrl, possibleJobs, GetSiteAJobInfo)
 	return interestingJobs
