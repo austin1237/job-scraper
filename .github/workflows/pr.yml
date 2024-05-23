@@ -13,7 +13,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
-        go-version: '1.21.6'
+        go-version: '1.22.3'
 
     - name: Lint/Staticcheck scraper
       uses: dominikh/staticcheck-action@v1.3.0
