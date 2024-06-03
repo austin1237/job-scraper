@@ -3,14 +3,19 @@ import { evaluateJobInterest } from '../interest';
 import { JobService, Job } from '../jobService';
 const urls: string[] = [];
 
-const didUrlChange = async (page: Page): Promise<boolean> => {
+const isUrlADup = async (page: Page, counter: number = 0): Promise<boolean> => {
 
     const url: string = page.url();
     if (urls.includes(url)) {
         // sleep for one second and check again
-        console.log('page url hasn\'t changed, sleeping for 3 second');
+        console.log('page url hasn\'t changed sleeping for 3 second');
         await new Promise(resolve => setTimeout(resolve, 3000));
-        return didUrlChange(page);
+        counter++;
+        if (counter >= 3) {
+            console.log(`${page.url()} is a duplicate skipping to next job`);
+            return false; // If URL didn't change 3 times, return false
+        }
+        return isUrlADup(page, counter);
     }
 
     urls.push(url);
@@ -39,27 +44,28 @@ export const scrap = async(browser : Browser, link : string, jobCount : number, 
                         await page.waitForSelector('#jobDescriptionText');
 
                         // subpage should have loaded by now confirm by checking the url
-                        await didUrlChange(page);
-                       
-                        const jobTitle = await page.evaluate(element => element.textContent, h2); // Get the h2 text
-                        let companyName = null;
+                        const isNonDupPosting = await isUrlADup(page);
+                        if (isNonDupPosting) {
+                            const jobTitle = await page.evaluate(element => element.textContent, h2); // Get the h2 text
+                            let companyName = null;
 
-                        // company isn't always set for w/e reason
-                        try {
-                            companyName = await container.$eval('[data-testid="company-name"]', element => element.textContent); // Get the company name
-                        } catch (error) {
-                            companyName = 'noCompanyFound';
+                            // company isn't always set for w/e reason
+                            try {
+                                companyName = await container.$eval('[data-testid="company-name"]', element => element.textContent); // Get the company name
+                            } catch (error) {
+                                companyName = 'noCompanyFound';
+                            }
+
+                            const jobDescriptionText = await page.$eval('#jobDescriptionText', element => element.textContent);
+                            const pageUrl = urls[urls.length - 1]; // Get the current page URL
+                            const jobCategory = evaluateJobInterest(jobTitle, companyName, jobDescriptionText);
+
+                            if(jobCategory && jobTitle && companyName && pageUrl){
+                                interestingJobs.push({ title: jobTitle, company: companyName, keyword: jobCategory, link: pageUrl });
+                            }
+                            
+                            await new Promise(resolve => setTimeout(resolve, 5000)); // Sleep for 5 seconds to avoid bot detection
                         }
-
-                        const jobDescriptionText = await page.$eval('#jobDescriptionText', element => element.textContent);
-                        const pageUrl = urls[urls.length - 1]; // Get the current page URL
-                        const jobCategory = evaluateJobInterest(jobTitle, companyName, jobDescriptionText);
-
-                        if(jobCategory && jobTitle && companyName && pageUrl){
-                            interestingJobs.push({ title: jobTitle, company: companyName, keyword: jobCategory, link: pageUrl });
-                        }
-                        
-                        await new Promise(resolve => setTimeout(resolve, 5000)); // Sleep for 5 seconds to avoid bot detection
                     }
                 }
             }
