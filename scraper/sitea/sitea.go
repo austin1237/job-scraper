@@ -87,8 +87,8 @@ func ScanNewJobs(siteABaseUrl string, proxyUrl string) []job.Job {
 
 	wg.Add(2)
 	go fetchJobs(siteABaseUrl + "/jobs/remote/nationwide/dev-engineering")
-	// lat and lon is obfuscated / local hospital
-	go fetchJobs(siteABaseUrl + "/jobs/hybrid/office/dev-engineering?search=Software+Engineer&location=Englewood-CO-USA&longitude=-104.99350&latitude=39.65464&searcharea=25mi")
+	// non fully remote Denver, CO from the last 24 hours
+	go fetchJobs(siteABaseUrl + "/jobs/hybrid/office/dev-engineering?search=Software+Engineer&daysSinceUpdated=1&location=Denver-CO-USA&longitude=-104.98485&latitude=39.73845&searcharea=25mi")
 
 	go func() {
 		wg.Wait()
