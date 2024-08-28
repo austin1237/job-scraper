@@ -25,9 +25,22 @@ const isUrlADup = async (page: Page, counter: number = 0): Promise<boolean> => {
 
 export const scrap = async(browser : Browser, link : string, jobCount : number, jobService: JobService) => {
     let interestingJobs: Job[] = [];
-    try{    
-        const page = await browser.newPage();
-        await page.goto(link);
+    let page: Page | undefined;
+    
+    try{
+        const tabs = await browser.pages();
+        for (const tab of tabs) {
+            if (tab.url().includes(link)) {
+                page = tab;
+                break;
+            }
+        }
+        if (!page) {
+            throw new Error('Page with matching link not found');
+        }
+
+        console.log(`Scraping started for ${link}`);
+
         await page.waitForSelector('.slider_container');
 
         while (true) {
@@ -83,7 +96,7 @@ export const scrap = async(browser : Browser, link : string, jobCount : number, 
             if (nextButton) {
                 await Promise.all([
                     nextButton.click(),
-                    page.waitForNavigation({ waitUntil: 'networkidle0' }),
+                    page.waitForNavigation(),
                 ]);
             } else {
                 break; // Exit the loop if there is no "Next" button
