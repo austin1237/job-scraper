@@ -59,7 +59,7 @@ func GetSiteAJobInfo(jobLink string, proxyUrl string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	jobDescription := doc.Find("div.job-description").Text()
+	jobDescription := doc.Find("div[id^='job-post-body-']").Text()
 
 	return jobDescription, nil
 }
