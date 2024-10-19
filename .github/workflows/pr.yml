@@ -49,19 +49,18 @@ jobs:
       run: go test -v ./...
       working-directory: jobNotifier
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
+    - uses: denoland/setup-deno@v2
       with:
-        node-version: v20.12.2
+        deno-version: v2.0.2
     
     - name: Install local dependencies
-      run: npm install
+      run: deno install
       working-directory: local
     
-    - name: build local typescript
-      run: npx tsc
+    - name: Lint local
+      run: deno lint
       working-directory: local
     
-    - name: test local
-      run: npm test
+    - name: Test local
+      run: deno test
       working-directory: local
