@@ -61,6 +61,6 @@ jobs:
       run: deno lint
       working-directory: local
     
-    - name: test local
+    - name: Test local
       run: deno test
       working-directory: local
