@@ -33,6 +33,16 @@ func TestCheckIfInterested(t *testing.T) {
 			want:        "go",
 		},
 		{
+			name:        "contains deno",
+			description: "This is a job for a Deno developer",
+			want:        "deno",
+		},
+		{
+			name:        "contains bun",
+			description: "This is a job for a Bun developer",
+			want:        "bun",
+		},
+		{
 			name:        "contains django",
 			description: "This is a job for a django developer in Chicago",
 			want:        "",
