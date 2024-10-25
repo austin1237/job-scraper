@@ -2,6 +2,8 @@ const includedKeywords = [
   "node",
   "nodejs",
   "node.js",
+  "deno",
+  "bun",
   "go",
   "golang",
   "typescript",

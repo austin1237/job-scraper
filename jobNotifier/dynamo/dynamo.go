@@ -58,8 +58,8 @@ func (t *Table) ReadItem(company string) (string, error) {
 }
 
 func (t *Table) WriteItems(companies []string) {
-	// Set the ttl time to 120 days from now
-	expirationTime := time.Now().AddDate(0, 4, 0).Unix()
+	// Set the ttl time to 6 moths from now
+	expirationTime := time.Now().AddDate(0, 6, 0).Unix()
 
 	// Create a wait group
 	var wg sync.WaitGroup
