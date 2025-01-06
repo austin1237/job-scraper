@@ -100,7 +100,7 @@ export const scrap = async (
                 });
               }
 
-              await new Promise((resolve) => setTimeout(resolve, 5000)); // Sleep for 5 seconds to avoid bot detection
+              await new Promise((resolve) => setTimeout(resolve, 25000)); // Sleep for 25 seconds to avoid bot detection
             }
           }
         }
