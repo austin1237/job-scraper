@@ -12,7 +12,9 @@ Deno.test("JobService", () => {
   let jobService: JobService;
 
   beforeEach(() => {
-    mockAxios = new MockAdapter(axios);
+    // Remove the ignore when https://github.com/ctimmerm/axios-mock-adapter/issues/400 is fixed
+    // deno-lint-ignore no-explicit-any
+    mockAxios = new MockAdapter(axios as any);
     jobService = new JobService("http://mock-endpoint.com");
   });
 
