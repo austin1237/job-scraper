@@ -17,9 +17,9 @@ func siteAJobListParser(baseURL string, doc *goquery.Document) []job.Job {
 		recent := false
 		titleCheck := false
 		companyLink, _ := s.Find("a[href^='/company/']").Attr("href")
-		jobLink, _ := s.Find("a[class='card-alias-after-overlay hover-underline link-visited-color text-break']").Attr("href")
-		jobTitle := s.Find("a[class='card-alias-after-overlay hover-underline link-visited-color text-break']").Text()
-		timePosted := s.Find("span.font-barlow.text-gray-03").Text()
+		jobLink, _ := s.Find("a[data-id='job-card-title']").Attr("href")
+		jobTitle := s.Find("a[data-id='job-card-title']").Text()
+		timePosted := s.Find("span.fs-xs.fw-bold.bg-gray-01.font-Montserrat.text-gray-03.rounded-1.py-xs.px-sm").Text()
 
 		// Split the companyLink on '/' and get the last part
 		parts := strings.Split(companyLink, "/")
