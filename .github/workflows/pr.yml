@@ -16,14 +16,14 @@ jobs:
           go-version: "1.25.3"
 
       - name: Lint/Staticcheck scraper
-        uses: dominikh/staticcheck-action@v1.3.0
+        uses: dominikh/staticcheck-action@v1.4.0
         with:
           version: "2023.1"
           install-go: false
           working-directory: scraper
 
       - name: Lint/Staticcheck proxy
-        uses: dominikh/staticcheck-action@v1.3.0
+        uses: dominikh/staticcheck-action@v1.4.0
         with:
           version: "2023.1"
           install-go: false
