@@ -2,65 +2,65 @@ name: Pull Request
 
 on:
   pull_request:
-    branches: '*'
+    branches: "*"
 
 jobs:
   testAndLint:
     runs-on: ubuntu-22.04
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.22.3'
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.25.3"
 
-    - name: Lint/Staticcheck scraper
-      uses: dominikh/staticcheck-action@v1.3.0
-      with:
-        version: "2023.1"
-        install-go: false
+      - name: Lint/Staticcheck scraper
+        uses: dominikh/staticcheck-action@v1.3.0
+        with:
+          version: "2023.1"
+          install-go: false
+          working-directory: scraper
+
+      - name: Lint/Staticcheck proxy
+        uses: dominikh/staticcheck-action@v1.3.0
+        with:
+          version: "2023.1"
+          install-go: false
+          working-directory: proxy
+
+      - name: Build scraper
+        run: go build -v ./...
         working-directory: scraper
-    
-    - name: Lint/Staticcheck proxy
-      uses: dominikh/staticcheck-action@v1.3.0
-      with:
-        version: "2023.1"
-        install-go: false
+
+      - name: Test scraper
+        run: go test -v ./...
+        working-directory: scraper
+
+      - name: Build proxy
+        run: go build -v ./...
         working-directory: proxy
 
-    - name: Build scraper
-      run: go build -v ./...
-      working-directory: scraper
-      
-    - name: Test scraper
-      run: go test -v ./...
-      working-directory: scraper
-   
-    - name: Build proxy
-      run: go build -v ./...
-      working-directory: proxy
-    
-    - name: Build jobNotifier
-      run: go build -v ./...
-      working-directory: jobNotifier
-    
-    - name: Test jobNotifier
-      run: go test -v ./...
-      working-directory: jobNotifier
+      - name: Build jobNotifier
+        run: go build -v ./...
+        working-directory: jobNotifier
 
-    - uses: denoland/setup-deno@v2
-      with:
-        deno-version: v2.2.5
-    
-    - name: Install local dependencies
-      run: deno install
-      working-directory: local
-    
-    - name: Lint local
-      run: deno lint
-      working-directory: local
-    
-    - name: Test local
-      run: deno test
-      working-directory: local
+      - name: Test jobNotifier
+        run: go test -v ./...
+        working-directory: jobNotifier
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.5.4
+
+      - name: Install local dependencies
+        run: deno install
+        working-directory: local
+
+      - name: Lint local
+        run: deno lint
+        working-directory: local
+
+      - name: Test local
+        run: deno test
+        working-directory: local
